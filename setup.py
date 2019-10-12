@@ -10,8 +10,9 @@
 #pip install twine
 
 #cd /D D:\OneDrive\Documents\Projects\trader\trendln
+#del dist\*.tar.gz
 #"%ProgramFiles%\Python37\python.exe" setup.py sdist
-#"%ProgramFiles%\Python37\scripts\twine.exe" upload dist/*
+#"%ProgramFiles%\Python37\scripts\twine.exe" upload dist/* --verbose
 #"%ProgramFiles%\Python37\scripts\pip.exe" install trendln --upgrade
 
 from setuptools import setup, find_packages
@@ -26,7 +27,7 @@ with io.open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='trendln',
-    version="0.1.2",
+    version="0.1.5",
     description='Support and Resistance Trend lines Calculator for Financial Analysis',
     long_description=long_description,
     long_description_content_type='text/markdown',
