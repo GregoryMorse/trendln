@@ -58,9 +58,4 @@ setup(
     keywords='trendlines, trend lines, trend, support, resistance, trends, technical, indicators, financial, analysis',
     packages=find_packages(exclude=['contrib', 'docs', 'tests', 'examples']),
     install_requires=['pandas>=0.24', 'numpy>=1.15'],
-    entry_points={
-        'console_scripts': [
-            'sample=sample:main',
-        ],
-    },
 )
