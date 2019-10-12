@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 #
 # Support and Resistance Trendlines Calculator for Financial Analysis
+# https://pypi.org/project/trendln
 # https://github.com/GregoryMorse/trendln
 
 """Support and Resistance Trendlines Calculator for Financial Analysis"""
