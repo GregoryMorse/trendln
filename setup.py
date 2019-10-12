@@ -57,5 +57,5 @@ setup(
     platforms = ['any'],
     keywords='trendlines, trend lines, trend, support, resistance, trends, technical, indicators, financial, analysis',
     packages=find_packages(exclude=['contrib', 'docs', 'tests', 'examples']),
-    install_requires=['pandas>=0.24', 'numpy>=1.15'],
+    install_requires=['numpy>=1.15', 'findiff>=0.7.0', 'scikit-image>=0.14.0', 'pandas>=0.23.1', 'matplotlib>=3.1.0'],
 )
