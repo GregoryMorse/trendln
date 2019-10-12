@@ -14,6 +14,8 @@
 #"%ProgramFiles%\Python37\python.exe" setup.py sdist
 #"%ProgramFiles%\Python37\scripts\twine.exe" upload dist/* --verbose
 #"%ProgramFiles%\Python37\scripts\pip.exe" install trendln --upgrade
+#import importlib
+#importlib.reload(trendln)
 
 from setuptools import setup, find_packages
 import io
