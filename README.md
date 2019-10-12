@@ -46,14 +46,10 @@ Installation
 
 Install ``trendln`` using ``pip``:
 
-.. code:: bash
-
     $ pip install trendln --upgrade --no-cache-dir
 
 
 Install ``trendln`` using ``conda``:
-
-.. code:: bash
 
     $ conda install -c GregoryMorse trendln
 
@@ -62,14 +58,14 @@ Requirements
 ------------
 
 * [Python](https://www.python.org) >= 2.7, 3.4+
-* [Pandas](https://github.com/pydata/pandas) >=0.23.1
+* [Pandas](https://github.com/pydata/pandas) >= 0.23.1
 * [Numpy](http://www.numpy.org) >= 1.11.1
 
 
 License
 -------
 
-**trendln** is distributed under the **MIT License**. See the [LICENSE.txt](./LICENSE.txt) file in the release for details.
+**trendln** is distributed under the **MIT License**. See the [LICENSE](./LICENSE) file in the release for details.
 
 Support
 -------
