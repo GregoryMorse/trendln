@@ -1,4 +1,4 @@
-#trendln
+# trendln
 
 Support and Resistance Trend lines Calculator for Financial Analysis
 ====================================================================
