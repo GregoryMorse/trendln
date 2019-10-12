@@ -43,7 +43,7 @@ trend lines using several different methods:
 		calc_support_resistance(
 		# list of data
 		hist,
-		
+
 		# METHOD_NAIVE - any local minima or maxima only for a single interval
 		# METHOD_NAIVECONSEC - any local minima or maxima including those for consecutive constant intervals
 		# METHOD_NUMDIFF (default) - numerical differentiation determined local minima or maxima (requires findiff)
