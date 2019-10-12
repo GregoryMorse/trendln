@@ -1,19 +1,22 @@
 import numpy as np
 
-class USTradingCalendar(AbstractHolidayCalendar):
-    rules = [
-        Holiday('NewYearsDay', month=1, day=1, observance=nearest_workday),
-        USMartinLutherKingJr,
-        USPresidentsDay,
-        GoodFriday,
-        USMemorialDay,
-        Holiday('USIndependenceDay', month=7, day=4, observance=nearest_workday),
-        USLaborDay,
-        USThanksgivingDay,
-        Holiday('Christmas', month=12, day=25, observance=nearest_workday)
-    ]
-
 def datefmt(xdate):
+    from pandas.tseries.holiday import AbstractHolidayCalendar, Holiday, nearest_workday, \
+        USMartinLutherKingJr, USPresidentsDay, GoodFriday, USMemorialDay, \
+        USLaborDay, USThanksgivingDay
+    from pandas.tseries.offsets import CustomBusinessDay
+    class USTradingCalendar(AbstractHolidayCalendar):
+        rules = [
+            Holiday('NewYearsDay', month=1, day=1, observance=nearest_workday),
+            USMartinLutherKingJr,
+            USPresidentsDay,
+            GoodFriday,
+            USMemorialDay,
+            Holiday('USIndependenceDay', month=7, day=4, observance=nearest_workday),
+            USLaborDay,
+            USThanksgivingDay,
+            Holiday('Christmas', month=12, day=25, observance=nearest_workday)
+        ]
     def mydate(x,pos):
         #print((x,pos))
         val = int(x + 0.5)
@@ -23,10 +26,7 @@ def datefmt(xdate):
     return mydate
 
 def plot_sup_res_learn(curdir, hist):
-    from pandas.tseries.holiday import AbstractHolidayCalendar, Holiday, nearest_workday, \
-        USMartinLutherKingJr, USPresidentsDay, GoodFriday, USMemorialDay, \
-        USLaborDay, USThanksgivingDay
-    from pandas.tseries.offsets import CustomBusinessDay
+    import os
     import pandas as pd
     import matplotlib.pyplot as plt
     import matplotlib.ticker as ticker
@@ -603,10 +603,6 @@ def calc_support_resistance(hist, extmethod = METHOD_NUMDIFF, method=METHOD_NSQU
     return minimaIdxs, maximaIdxs, pmin, pmax, mintrend, maxtrend
 
 def plot_support_resistance(hist, MaxDays, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN, window=125, errpct = 0.005, hough_prob_iter=10, sortError=False):
-    from pandas.tseries.holiday import AbstractHolidayCalendar, Holiday, nearest_workday, \
-        USMartinLutherKingJr, USPresidentsDay, GoodFriday, USMemorialDay, \
-        USLaborDay, USThanksgivingDay
-    from pandas.tseries.offsets import CustomBusinessDay
     import pandas as pd
     import matplotlib.pyplot as plt
     import matplotlib.ticker as ticker
