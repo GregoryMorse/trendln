@@ -603,6 +603,10 @@ def calc_support_resistance(hist, extmethod = METHOD_NUMDIFF, method=METHOD_NSQU
     return minimaIdxs, maximaIdxs, pmin, pmax, mintrend, maxtrend
 
 def plot_support_resistance(hist, MaxDays, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN, window=125, errpct = 0.005, hough_prob_iter=10, sortError=False):
+    from pandas.tseries.holiday import AbstractHolidayCalendar, Holiday, nearest_workday, \
+        USMartinLutherKingJr, USPresidentsDay, GoodFriday, USMemorialDay, \
+        USLaborDay, USThanksgivingDay
+    from pandas.tseries.offsets import CustomBusinessDay
     import pandas as pd
     import matplotlib.pyplot as plt
     import matplotlib.ticker as ticker
