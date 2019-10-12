@@ -9,9 +9,9 @@
 #pip install twine
 
 #cd /D D:\OneDrive\Documents\Projects\trader\trendln
-#python setup.py sdist
-#twine upload dist/*
-#pip install trendln --upgrade
+#"%ProgramFiles%\Python37\python.exe" setup.py sdist
+#"%ProgramFiles%\Python37\scripts\twine.exe" upload dist/*
+#"%ProgramFiles%\Python37\scripts\pip.exe" install trendln --upgrade
 
 from setuptools import setup, find_packages
 import io
@@ -28,6 +28,7 @@ setup(
     version="0.1",
     description='Support and Resistance Trendlines Calculator',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     url='https://github.com/GregoryMorse/trendln',
     author='Gregory Morse',
     author_email='gregory.morse@live.com',
