@@ -1,4 +1,35 @@
-def plot_sup_res_learn(hist):
+import numpy as np
+
+class USTradingCalendar(AbstractHolidayCalendar):
+    rules = [
+        Holiday('NewYearsDay', month=1, day=1, observance=nearest_workday),
+        USMartinLutherKingJr,
+        USPresidentsDay,
+        GoodFriday,
+        USMemorialDay,
+        Holiday('USIndependenceDay', month=7, day=4, observance=nearest_workday),
+        USLaborDay,
+        USThanksgivingDay,
+        Holiday('Christmas', month=12, day=25, observance=nearest_workday)
+    ]
+
+def datefmt(xdate):
+    def mydate(x,pos):
+        #print((x,pos))
+        val = int(x + 0.5)
+        if val < 0: return (xdate[0].to_pydatetime() - CustomBusinessDay(-val, calendar=USTradingCalendar())).strftime('%Y-%m-%d')
+        elif val >= len(xdate): return (xdate[-1].to_pydatetime() + CustomBusinessDay(val - len(xdate) + 1, calendar=USTradingCalendar())).strftime('%Y-%m-%d')
+        else: return xdate[val].strftime('%Y-%m-%d')
+    return mydate
+
+def plot_sup_res_learn(curdir, hist):
+    from pandas.tseries.holiday import AbstractHolidayCalendar, Holiday, nearest_workday, \
+        USMartinLutherKingJr, USPresidentsDay, GoodFriday, USMemorialDay, \
+        USLaborDay, USThanksgivingDay
+    from pandas.tseries.offsets import CustomBusinessDay
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import matplotlib.ticker as ticker
     #for x in plt.get_fignums(): plt.close(plt.figure(x)) #clean up when crashes occur and figures left open
     #plt.get_backend(): 'TkAgg' is default
     #hist[:'2019-10-07']
@@ -572,6 +603,9 @@ def calc_support_resistance(hist, extmethod = METHOD_NUMDIFF, method=METHOD_NSQU
     return minimaIdxs, maximaIdxs, pmin, pmax, mintrend, maxtrend
 
 def plot_support_resistance(hist, MaxDays, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN, window=125, errpct = 0.005, hough_prob_iter=10, sortError=False):
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import matplotlib.ticker as ticker
     hist = hist[-MaxDays:]
     minimaIdxs, maximaIdxs, pmin, pmax, mintrend, maxtrend = calc_support_resistance(hist, extmethod, method, window, errpct, hough_prob_iter, sortError)
     plt.cla()
