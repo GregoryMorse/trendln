@@ -32,6 +32,7 @@ Calculation Only
 The **calc_support_resistance** function will calculate all support and
 resistance information including local extrema, average and their
 trend lines using several different methods:
+
 	import trendln
 	# this will serve as an example for security or index closing prices
 	import yfinance as yf # pip install yfinance
