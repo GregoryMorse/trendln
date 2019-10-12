@@ -1,7 +1,7 @@
 #trendln
 
 Support and Resistance Trend lines Calculator for Financial Analysis
-===================================================================
+====================================================================
 
 .. image:: https://img.shields.io/badge/python-2.7,%203.4+-blue.svg?style=flat
     :target: https://pypi.python.org/pypi/trendln
@@ -43,7 +43,8 @@ The ``calc_support_resistance`` function will calculate all support and resistan
 
 .. code:: python
 
-
+	calc_support_resistance()
+	plot_support_resistance()
 
 Plotting Calculations
 ~~~~~~~~~~~~~~~~~~~~~
