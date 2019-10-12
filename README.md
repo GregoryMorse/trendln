@@ -35,7 +35,7 @@ trend lines using several different methods:
 
 	import trendln
 	# this will serve as an example for security or index closing prices
-	import yfinance as yf # pip install yfinance
+	import yfinance as yf # requires yfinance - pip install yfinance
 	tick = yf.Ticker('^GSPC') # S&P500
 	hist = tick.history(period="max", rounding=True)
 	minimaIdxs, maximaIdxs, pmin, pmax, mintrend, maxtrend =
@@ -53,8 +53,8 @@ trend lines using several different methods:
 		# METHOD_NCUBED - simple exhuastive 3 point search (slowest)
 		# METHOD_NSQUREDLOGN - 2 point sorted slope search (fast)
 		# METHOD_HOUGHPOINTS - Hough line transform optimized for points
-		# METHOD_HOUGHLINES - Hough line transform (requires scikit-image)
-		# METHOD_PROBHOUGH - Probabilistic Hough line transform (requires scikit-image)
+		# METHOD_HOUGHLINES - image-based Hough line transform (requires scikit-image)
+		# METHOD_PROBHOUGH - image-based Probabilistic Hough line transform (requires scikit-image)
 		method=METHOD_NSQUREDLOGN,
 		
 		# window size when searching for trend lines prior to merging together
@@ -90,7 +90,7 @@ and top 2 support and resistance lines, along with marking extrema used with
 a maximum history length, and otherwise identical arguments to the
 calculation function.
 
-	fig = plot_support_resistance(hist, 1000)
+	fig = plot_support_resistance(hist, 1000) # requires matplotlib - pip install matplotlib
 	fig = plot_support_resistance(
 		hist,
 		MaxDays, # maximum time period used from the data provided
@@ -123,8 +123,11 @@ Requirements
 ------------
 
 * [Python](https://www.python.org) >= 2.7, 3.4+
-* [Pandas](https://github.com/pydata/pandas) >= 0.23.1
-* [Numpy](http://www.numpy.org) >= 1.11.1
+* [numpy](http://www.numpy.org) >= 1.15
+* [findiff](https://github.com/maroba/findiff) >= 0.7.0 (if using numerical differentiation method)
+* [scikit-image](https://scikit-image.org) >= 0.14.0 (if using image-based Hough line transform or its probabilistic variant)
+* [pandas](https://github.com/pydata/pandas) >= 0.23.1 (if using plotting function)
+* [matplotlib](https://matplotlib.org) >= 3.1.0 (if using plotting function)
 
 
 License
