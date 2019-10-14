@@ -150,7 +150,10 @@ Install ``trendln`` using ``conda``:
 Installation sanity check:
 
 	import trendln
-	trendln.test_sup_res() #simple tests that all methods are executing correct, assertion or other error indicates problem
+	#requires yfinance library install, not a package requirement, but used to assist with sanity check
+	#pip install yfinance
+	directory = '.'
+	trendln.test_sup_res(directory) #simple tests that all methods are executing correct, assertion or other error indicates problem
 
 Requirements
 ------------
