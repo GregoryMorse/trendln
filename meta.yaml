@@ -20,7 +20,7 @@ requirements:
     - findiff >=0.7.0
     - scikit-image >=0.14.0
     - pandas >=0.23.1
-    - matplotlib >=3.1.0
+    - matplotlib >=2.2.4
     - pip
     - python
   run:
@@ -28,7 +28,7 @@ requirements:
     - findiff >=0.7.0
     - scikit-image >=0.14.0
     - pandas >=0.23.1
-    - matplotlib >=3.1.0
+    - matplotlib >=2.2.4
     - python
 
 test:
