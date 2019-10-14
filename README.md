@@ -9,6 +9,7 @@ Support and Resistance Trend lines Calculator for Financial Analysis
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/trendln.svg?maxAge=2592000&label=installs&color=%2327B1FF)](https://pypi.python.org/pypi/trendln)
 [![PyPI - License](https://img.shields.io/pypi/l/trendln)](https://pypi.python.org/pypi/trendln)
 [![PyPI - Implementation](https://img.shields.io/pypi/implementation/trendln)](https://pypi.python.org/pypi/trendln)
+[![Latest push build on default branch](https://travis-ci.com/GregoryMorse/trendln.svg?branch=master)](https://travis-ci.com/GregoryMorse/trendln)
 [![GitHub stars](https://img.shields.io/github/stars/GregoryMorse/trendln?style=social)](https://github.com/GregoryMorse/trendln)
 
 Note
