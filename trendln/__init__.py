@@ -672,25 +672,27 @@ def calc_support_resistance(h, extmethod = METHOD_NUMDIFF, method=METHOD_NSQURED
 
     return minimaIdxs, maximaIdxs, pmin, pmax, mintrend, maxtrend, minwindows, maxwindows
 
-def plot_sup_res_date(hist, idx, numbest = 2, fromwindows = True, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN, window=125, errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False):
+def plot_sup_res_date(hist, idx, numbest = 2, fromwindows = True, pctbound=0.1, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN, window=125, errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False):
     import pandas as pd
-    return plot_support_resistance(hist, ticker.FuncFormatter(datefmt(idx)), numbest, fromwindows, extmethod, method, window, errpct, hough_scale, hough_prob_iter, sortError)
-def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = True, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN, window=125, errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False):
+    return plot_support_resistance(hist, ticker.FuncFormatter(datefmt(idx)), numbest, fromwindows, pctbound, extmethod, method, window, errpct, hough_scale, hough_prob_iter, sortError)
+def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = True, pctbound=0.1, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN, window=125, errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False):
     import matplotlib.pyplot as plt
     import matplotlib.ticker as ticker
     minimaIdxs, maximaIdxs, pmin, pmax, mintrend, maxtrend, minwindows, maxwindows = calc_support_resistance(hist, extmethod, method, window, errpct, hough_scale, hough_prob_iter, sortError)
+    min_h, max_h, len_h = min(hist), max(hist), len(hist)
     plt.cla()
     plt.subplot(111)
     plt.plot(minimaIdxs, [hist[x] for x in minimaIdxs], 'yo')
     plt.plot(maximaIdxs, [hist[x] for x in maximaIdxs], 'bo')
-    plt.plot([0, len(hist)-1],[pmin[1],pmin[0] * (len(hist)-1) + pmin[1]],"y--", label='Avg. Support')
-    plt.plot([0, len(hist)-1],[pmax[1],pmax[0] * (len(hist)-1) + pmax[1]],"b--", label='Avg. Resistance')
-    plt.plot(range(len(hist)), hist, 'k--', label='Close Price')
+    plt.plot([0, len_h-1],[pmin[1],pmin[0] * (len_h-1) + pmin[1]],"y--", label='Avg. Support')
+    plt.plot([0, len_h-1],[pmax[1],pmax[0] * (len_h-1) + pmax[1]],"b--", label='Avg. Resistance')
+    plt.plot(range(len_h), hist, 'k--', label='Close Price')
     def add_trend(trend, lbl, clr, bFirst):
         for ln in trend[:numbest]:
-            for maxx in range(ln[0][-1]+1, len(hist)):
+            for maxx in range(ln[0][-1]+1, len_h):
                 ypred = ln[1][0] * maxx + ln[1][1]
-                if hist[maxx] > ypred and hist[maxx-1] < ypred or hist[maxx] < ypred and hist[maxx-1] > ypred: break
+                if (hist[maxx] > ypred and hist[maxx-1] < ypred or hist[maxx] < ypred and hist[maxx-1] > ypred or
+                    ypred > max_h + (max_h-min_h)*pctbound or ypred < min_h - (max_h-min_h)*pctbound): break
             x_vals = np.array((ln[0][0], maxx)) # plt.gca().get_xlim())
             y_vals = ln[1][0] * x_vals + ln[1][1]
             if bFirst:
