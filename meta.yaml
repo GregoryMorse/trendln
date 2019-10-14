@@ -1,0 +1,52 @@
+{% set name = "trendln" %}
+{% set version = "0.1.18" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: "e2131c5e724258597f828e3210084d41f8eeedc38b462c8a33c9fbb772935f06"
+
+build:
+  noarch: python
+  number: 0
+  script: "{{ PYTHON }} -m pip install . --no-deps --ignore-installed -vv "
+
+requirements:
+  host:
+    - numpy >=1.15
+    - findiff >=0.7.0
+    - scikit-image >=0.14.0
+    - pandas >=0.23.1
+    - matplotlib >=3.1.0
+    - pip
+    - python
+  run:
+    - numpy >=1.15
+    - findiff >=0.7.0
+    - scikit-image >=0.14.0
+    - pandas >=0.23.1
+    - matplotlib >=3.1.0
+    - python
+
+test:
+  imports:
+    - trendln
+
+about:
+  home: "https://github.com/GregoryMorse/trendln"
+  license: "MIT"
+  license_family: "MIT"
+  license_file: "LICENSE"
+  summary: "Support and Resistance Trend lines Calculator for Financial Analysis"
+  description: "See the package README.md for more information."
+  doc_url: "https://github.com/GregoryMorse/trendln"
+  dev_url: "https://pypi.python.org/pypi/trendln"
+  doc_source_url: https://github.com/GregoryMorse/trendln/blob/master/README.md
+
+
+extra:
+  recipe-maintainers:
+    - GregoryMorse
