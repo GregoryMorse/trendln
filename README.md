@@ -132,7 +132,7 @@ calculation function.
 		sortError=False)
 	
 	plot_sup_res_learn( #draw learning figures, included for reference material only
-		curdir, #output directory for png and svg images
+		curdir, #base output directory for png and svg images, will be saved in 'data' subfolder
 		hist) #pandas DataFrame containing Close and date index
 	
 ![Example output of plotting support resistance](https://github.com/GregoryMorse/trendln/blob/master/img/suppres.svg)
@@ -154,7 +154,7 @@ Installation sanity check:
 	import trendln
 	#requires yfinance library install, not a package requirement, but used to assist with sanity check
 	#pip install yfinance
-	directory = '.'
+	directory = '.' # a 'data' folder will be created here if not existing to store images
 	trendln.test_sup_res(directory) #simple tests that all methods are executing correct, assertion or other error indicates problem
 
 Requirements
