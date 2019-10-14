@@ -29,7 +29,7 @@ with io.open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='trendln',
-    version="0.1.6",
+    version="0.1.8",
     description='Support and Resistance Trend lines Calculator for Financial Analysis',
     long_description=long_description,
     long_description_content_type='text/markdown',
