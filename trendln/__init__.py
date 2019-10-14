@@ -28,6 +28,7 @@ def datefmt(xdate, cal=None):
 
 def plot_sup_res_learn(curdir, hist):
     import os
+    if not os.path.isdir(os.path.join(curdir, 'data')): os.mkdir(os.path.join(curdir, 'data')) #image folder
     import pandas as pd
     import matplotlib.pyplot as plt
     import matplotlib.ticker as ticker
@@ -385,11 +386,13 @@ def calc_support_resistance(h, extmethod = METHOD_NUMDIFF, method=METHOD_NSQURED
     #https://stackoverflow.com/questions/8587047/support-resistance-algorithm-technical-analysis/8590007#8590007    
     if extmethod == METHOD_NAIVE:
         #naive method
+        import pandas as pd
         hist = pd.DataFrame(h, [str(x) for x in range(0, len(h))], ['Value'])
         minimaIdxs = np.flatnonzero(hist.Value.rolling(window=3, min_periods=1, center=True).aggregate(lambda x: len(x) == 3 and x[0] > x[1] and x[2] > x[1])).tolist()
         maximaIdxs = np.flatnonzero(hist.Value.rolling(window=3, min_periods=1, center=True).aggregate(lambda x: len(x) == 3 and x[0] < x[1] and x[2] < x[1])).tolist()
     elif extmethod == METHOD_NAIVECONSEC:
         #naive method collapsing duplicate consecutive values
+        import pandas as pd
         hist = pd.DataFrame(h, [str(x) for x in range(0, len(h))], ['Value'])
         hs = hist.Value.loc[hist.Value.shift(-1) != hist.Value]
         x = hs.rolling(window=3, center=True).aggregate(lambda x: x[0] > x[1] and x[2] > x[1])
@@ -673,7 +676,7 @@ def calc_support_resistance(h, extmethod = METHOD_NUMDIFF, method=METHOD_NSQURED
     return minimaIdxs, maximaIdxs, pmin, pmax, mintrend, maxtrend, minwindows, maxwindows
 
 def plot_sup_res_date(hist, idx, numbest = 2, fromwindows = True, pctbound=0.1, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN, window=125, errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False):
-    import pandas as pd
+    import matplotlib.ticker as ticker
     return plot_support_resistance(hist, ticker.FuncFormatter(datefmt(idx)), numbest, fromwindows, pctbound, extmethod, method, window, errpct, hough_scale, hough_prob_iter, sortError)
 def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = True, pctbound=0.1, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN, window=125, errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False):
     import matplotlib.pyplot as plt
