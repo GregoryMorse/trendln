@@ -14,12 +14,14 @@ Support and Resistance Trend lines Calculator for Financial Analysis
 Note
 ----
 
+This library can calculate and plot trend lines for any time series, not only for its primary intended purpose of financial analysis.
+
 [Changelog »](./CHANGELOG.md)
 
 ---
 
-==> Check out this article on [Programmatic Identification of Support/Resistance Trend lines with Python](https://medium.com/p/d797a4a90530)
-for details on how the library works and its features.
+==> Check out this article on [Programmatic Identification of Support/Resistance Trend lines with Python](https://towardsdatascience.com/programmatic-identification-of-support-resistance-trend-lines-with-python-d797a4a90530) or [alternatively here](https://medium.com/@gregory.morse1/programmatic-identification-of-support-resistance-trend-lines-with-python-d797a4a90530)
+for details on how the library and its features are implemented and work.
 
 ---
 
@@ -38,20 +40,20 @@ trend lines using several different methods:
 	import yfinance as yf # requires yfinance - pip install yfinance
 	tick = yf.Ticker('^GSPC') # S&P500
 	hist = tick.history(period="max", rounding=True)
-	minimaIdxs, maximaIdxs, pmin, pmax, mintrend, maxtrend =
-		calc_support_resistance(hist[-1000:])
-	minimaIdxs, maximaIdxs, pmin, pmax, mintrend, maxtrend =
+	minimaIdxs, maximaIdxs, pmin, pmax, mintrend, maxtrend, minwindows, maxwindows =
+		calc_support_resistance(hist[-1000:].Close)
+	minimaIdxs, maximaIdxs, pmin, pmax, mintrend, maxtrend, minwindows, maxwindows =
 		calc_support_resistance(
-		# list of data
+		# list of data as float
 		hist,
 
-		# METHOD_NAIVE - any local minima or maxima only for a single interval
-		# METHOD_NAIVECONSEC - any local minima or maxima including those for consecutive constant intervals
+		# METHOD_NAIVE - any local minima or maxima only for a single interval (currently requires pandas)
+		# METHOD_NAIVECONSEC - any local minima or maxima including those for consecutive constant intervals (currently requires pandas)
 		# METHOD_NUMDIFF (default) - numerical differentiation determined local minima or maxima (requires findiff)
 		extmethod = METHOD_NUMDIFF,
 		
 		# METHOD_NCUBED - simple exhuastive 3 point search (slowest)
-		# METHOD_NSQUREDLOGN - 2 point sorted slope search (fast)
+		# METHOD_NSQUREDLOGN (default) - 2 point sorted slope search (fast)
 		# METHOD_HOUGHPOINTS - Hough line transform optimized for points
 		# METHOD_HOUGHLINES - image-based Hough line transform (requires scikit-image)
 		# METHOD_PROBHOUGH - image-based Probabilistic Hough line transform (requires scikit-image)
@@ -62,6 +64,9 @@ trend lines using several different methods:
 		
 		# maximum percentage slope standard error
 		errpct = 0.005,
+		
+		# for all METHOD_*HOUGH*, the smallest unit increment for discretization e.g. cents/pennies 0.01
+		hough_scale=0.01
 		
 		# only for METHOD_PROBHOUGH, number of iterations to run
 		hough_prob_iter=10,
@@ -81,7 +86,10 @@ trend lines using several different methods:
 			# SSR - sum of squares due to regression
 			# slopeErr - standard error of slope
 			# interceptErr - standard error of intercept
-			# areaAvg - Reimann sum area of difference between best fit trend line and actual data points averaged per time unit
+			# areaAvg - Reimann sum area of difference between best fit trend line
+			#   and actual data points averaged per time unit
+	# minwindows - list of windows each containing mintrend for that window
+	# maxwindows - list of windows each containing maxtrend for that window
 
 Plotting Calculations
 ---------------------
@@ -90,10 +98,13 @@ and top 2 support and resistance lines, along with marking extrema used with
 a maximum history length, and otherwise identical arguments to the
 calculation function.
 
-	fig = plot_support_resistance(hist, 1000) # requires matplotlib - pip install matplotlib
+	fig = plot_support_resistance(hist[-1000:].Close) # requires matplotlib - pip install matplotlib
 	fig = plot_support_resistance(
 		hist,
-		MaxDays, # maximum time period used from the data provided
+		xformatter = None, #x-axis data formatter turning numeric indexes to display output
+		  # e.g. ticker.FuncFormatter(func) otherwise just display numeric indexes
+		numbest = 2, #number of best support and best resistance lines to display
+		fromwindows = True, #draw numbest best from each window, otherwise draw numbest across whole range
 		extmethod = METHOD_NUMDIFF,
 		method=METHOD_NSQUREDLOGN,
 		window=125,
@@ -103,6 +114,24 @@ calculation function.
 	# fig - returns matplotlib.pyplot.gcf() or the current figure
 	plt.savefig('suppres.svg', format='svg')
 	plt.show()
+	
+	fig = plot_sup_res_date(hist[-1000:].Close, hist[-1000:].index) #requires pandas
+	fig = plot_sup_res_date( #automatic date formatter based on US trading calendar
+		hist,
+		idx, #date index from pandas
+		numbest = 2,
+		fromwindows = True,
+		extmethod = METHOD_NUMDIFF,
+		method=METHOD_NSQUREDLOGN,
+		window=125,
+		errpct = 0.005,
+		hough_scale=0.01,
+		hough_prob_iter=10,
+		sortError=False)
+	
+	plot_sup_res_learn( #draw learning figures, included for reference material only
+		curdir, #output directory for png and svg images
+		hist) #pandas DataFrame containing Close and date index
 	
 ![Example output of plotting support resistance](https://github.com/GregoryMorse/trendln/blob/master/img/suppres.svg)
 
@@ -118,16 +147,20 @@ Install ``trendln`` using ``conda``:
 
     $ conda install -c GregoryMorse trendln
 
+Installation sanity check:
+
+	import trendln
+	trendln.test_sup_res() #simple tests that all methods are executing correct, assertion or other error indicates problem
 
 Requirements
 ------------
 
 * [Python](https://www.python.org) >= 2.7, 3.4+
 * [numpy](http://www.numpy.org) >= 1.15
-* [findiff](https://github.com/maroba/findiff) >= 0.7.0 (if using numerical differentiation method)
+* [findiff](https://github.com/maroba/findiff) >= 0.7.0 (if using default numerical differentiation method)
 * [scikit-image](https://scikit-image.org) >= 0.14.0 (if using image-based Hough line transform or its probabilistic variant)
-* [pandas](https://github.com/pydata/pandas) >= 0.23.1 (if using plotting function)
-* [matplotlib](https://matplotlib.org) >= 3.1.0 (if using plotting function)
+* [pandas](https://github.com/pydata/pandas) >= 0.23.1 (if using date plotting function, or using naive minima/maxima methods)
+* [matplotlib](https://matplotlib.org) >= 3.1.0 (if using any plotting function)
 
 
 License
