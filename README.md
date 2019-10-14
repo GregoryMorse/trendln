@@ -165,7 +165,7 @@ Requirements
 * [findiff](https://github.com/maroba/findiff) >= 0.7.0 (if using default numerical differentiation method)
 * [scikit-image](https://scikit-image.org) >= 0.14.0 (if using image-based Hough line transform or its probabilistic variant)
 * [pandas](https://github.com/pydata/pandas) >= 0.23.1 (if using date plotting function, or using naive minima/maxima methods)
-* [matplotlib](https://matplotlib.org) >= 3.1.0 (if using any plotting function)
+* [matplotlib](https://matplotlib.org) >= 2.2.4 (if using any plotting function)
 
 
 License
