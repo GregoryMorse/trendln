@@ -105,6 +105,7 @@ calculation function.
 		  # e.g. ticker.FuncFormatter(func) otherwise just display numeric indexes
 		numbest = 2, #number of best support and best resistance lines to display
 		fromwindows = True, #draw numbest best from each window, otherwise draw numbest across whole range
+		pctbound = 0.1, # bound trend line based on this maximum percentage of the data range above the high or below the low
 		extmethod = METHOD_NUMDIFF,
 		method=METHOD_NSQUREDLOGN,
 		window=125,
@@ -121,6 +122,7 @@ calculation function.
 		idx, #date index from pandas
 		numbest = 2,
 		fromwindows = True,
+		pctbound = 0.1,
 		extmethod = METHOD_NUMDIFF,
 		method=METHOD_NSQUREDLOGN,
 		window=125,
