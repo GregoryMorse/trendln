@@ -14,6 +14,7 @@
 #"%ProgramFiles%\Python37\python.exe" setup.py sdist
 #"%ProgramFiles%\Python37\scripts\twine.exe" upload dist/* --verbose
 #"%ProgramFiles%\Python37\scripts\pip.exe" install trendln --upgrade
+#"%ProgramData%\Anaconda3\scripts\pip.exe" install trendln --upgrade
 #import importlib
 #importlib.reload(trendln)
 
@@ -29,7 +30,7 @@ with io.open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='trendln',
-    version="0.1.8",
+    version="0.1.10",
     description='Support and Resistance Trend lines Calculator for Financial Analysis',
     long_description=long_description,
     long_description_content_type='text/markdown',
