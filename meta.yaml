@@ -1,5 +1,5 @@
 {% set name = "trendln" %}
-{% set version = "0.1.18" %}
+{% set version = "0.1.10" %}
 
 package:
   name: "{{ name|lower }}"
