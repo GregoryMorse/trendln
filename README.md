@@ -42,11 +42,11 @@ trend lines using several different methods:
 	tick = yf.Ticker('^GSPC') # S&P500
 	hist = tick.history(period="max", rounding=True)
 	mins, maxs = calc_support_resistance(hist[-1000:].Close)
-	mins = calc_support_resistance((hist[-1000:].Low, None)) #support only
+	minimaIdxs, pmin, mintrend, minwindows = calc_support_resistance((hist[-1000:].Low, None)) #support only
 	mins, maxs = calc_support_resistance((hist[-1000:].Low, hist[-1000:].High))
 	(minimaIdxs, pmin, mintrend, minwindows), (maximaIdxs, pmax, maxtrend, maxwindows) = mins, maxs
 
-	(minimaIdxs, pmin, mintrend, minwindows), (maximaIdxs, pmax, maxtrend, maxwindows) =
+	(minimaIdxs, pmin, mintrend, minwindows), (maximaIdxs, pmax, maxtrend, maxwindows) = \
 		calc_support_resistance(
 		# list/numpy ndarray/pandas Series of data as bool/int/float and if not a list also unsigned
 		# or 2-tuple (support, resistance) where support and resistance are 1-dimensional array-like or one or the other is None
