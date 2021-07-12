@@ -759,7 +759,8 @@ def plot_sup_res_date(hist, idx, numbest = 2, fromwindows = True, pctbound=0.1,
                                    pctbound, extmethod, method, window, errpct, hough_scale, hough_prob_iter, sortError, accuracy)
 def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = True,
                             pctbound=0.1, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN,
-                            window=125, errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False, accuracy=1):
+                            window=125, errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False, accuracy=1,
+                            title='Prices with Support/Resistance Trend Lines', y_axis_label='Price', y_label='Close Price'):
     import matplotlib.pyplot as plt
     import matplotlib.ticker as ticker
     ret = calc_support_resistance(hist, extmethod, method, window, errpct, hough_scale, hough_prob_iter, sortError, accuracy)
@@ -774,15 +775,15 @@ def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = 
             disp = [(hist[0], minimaIdxs, pmin, 'yo', 'Avg. Support', 'y--'), (hist[1], maximaIdxs, pmax, 'bo', 'Avg. Resistance', 'b--')]
             dispwin = [(hist[0], minwindows, 'Support', 'g--'), (hist[1], maxwindows, 'Resistance', 'r--')]
             disptrend = [(hist[0], mintrend, 'Support', 'g--'), (hist[1], maxtrend, 'Resistance', 'r--')]
-            plt.plot(range(len_h), hist[0], 'k--', label='Low Price')
-            plt.plot(range(len_h), hist[1], 'm--', label='High Price')
+            plt.plot(range(len_h), hist[0], 'k--', label=f'Low {y_label}')
+            plt.plot(range(len_h), hist[1], 'm--', label=f'High {y_label}')
         else:
             len_h = len(hist)
             min_h, max_h = min(hist), max(hist)
             disp = [(hist, minimaIdxs, pmin, 'yo', 'Avg. Support', 'y--'), (hist, maximaIdxs, pmax, 'bo', 'Avg. Resistance', 'b--')]
             dispwin = [(hist, minwindows, 'Support', 'g--'), (hist, maxwindows, 'Resistance', 'r--')]
             disptrend = [(hist, mintrend, 'Support', 'g--'), (hist, maxtrend, 'Resistance', 'r--')]
-            plt.plot(range(len_h), hist, 'k--', label='Close Price')
+            plt.plot(range(len_h), hist, 'k--', label=y_label)
     else:
         minimaIdxs, pmin, mintrend, minwindows = ([], [], [], []) if hist[0] is None else ret
         maximaIdxs, pmax, maxtrend, maxwindows = ([], [], [], []) if hist[1] is None else ret
@@ -818,9 +819,9 @@ def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = 
     else:
         for h, trend, lbl, clr in disptrend:
             add_trend(h, trend, lbl, clr, True)
-    plt.title('Prices with Support/Resistance Trend Lines')
+    plt.title(title)
     plt.xlabel('Date')
-    plt.ylabel('Price')
+    plt.ylabel(y_axis_label)
     plt.legend()
     plt.gca().xaxis.set_major_locator(ticker.MaxNLocator(6))
     #plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
