@@ -266,10 +266,10 @@ def plot_sup_res_learn(curdir, hist):
         plt.subplot(111)
         plt.plot(minimaIdxs, [h.Close.iloc[x] for x in minimaIdxs], 'yo', label='Minima')
         plt.plot(maximaIdxs, [h.Close.iloc[x] for x in maximaIdxs], 'bo', label='Maxima')
-        from findiff import FinDiff
+        from findiff import Diff
         dx = 1 #grid scale could be amplified with pennies 0.01
-        d_dx = FinDiff(0, dx, 1) #acc=3 #for 5-point stencil, currenly uses +/-1 day only
-        d2_dx2 = FinDiff(0, dx, 2) #acc=3 #for 5-point stencil, currenly uses +/-1 day only
+        d_dx = Diff(0, dx)
+        d2_dx2 = Diff(0, dx) ** 2
         clarr = np.asarray(h.Close)
         mom = d_dx(clarr)
         momacc = d2_dx2(clarr)
@@ -433,10 +433,10 @@ def get_extrema(h, extmethod=METHOD_NUMDIFF, accuracy=2):
             return minFunc, maxFunc, numdiff_extrema
     elif extmethod == METHOD_NUMDIFF:
         #pip install findiff
-        from findiff import FinDiff
+        from findiff import Diff
         dx = 1 #1 day interval
-        d_dx = FinDiff(0, dx, 1, acc=accuracy) #acc=4 #for 5-point stencil, currently uses +/-1 day only
-        d2_dx2 = FinDiff(0, dx, 2, acc=accuracy) #acc=4 #for 5-point stencil, currently uses +/-1 day only
+        d_dx = Diff(0, dx, acc=accuracy)
+        d2_dx2 = Diff(0, dx, acc=accuracy) ** 2
         def get_minmax(h):
             clarr = np.asarray(h, dtype=np.float64)
             mom, momacc = d_dx(clarr), d2_dx2(clarr)
