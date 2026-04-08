@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Run tests
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python - << 'EOF'
+          import trendln
+          import numpy as np
+          import pandas as pd
+
+          data = [0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0]
+          data = [float(x) for x in data]
+          result = (
+              ([6, 12, 18], [0.0, 0.0],
+               [([6, 12, 18], (0.0, 0.0, 0.0, 0.0, 0.0, 0.0))],
+               [[([6, 12, 18], (0.0, 0.0, 0.0, 0.0, 0.0, 0.0))]]),
+              ([3, 9, 15, 21], [0.0, 3.0],
+               [([3, 9, 15, 21], (0.0, 3.0, 0.0, 0.0, 0.0, 0.0))],
+               [[([3, 9, 15, 21], (0.0, 3.0, 0.0, 0.0, 0.0, 0.0))]]))
+
+          assert result == trendln.calc_support_resistance(data, extmethod=trendln.METHOD_NAIVE), \
+              "METHOD_NAIVE failed"
+          assert result == trendln.calc_support_resistance(data, extmethod=trendln.METHOD_NAIVECONSEC), \
+              "METHOD_NAIVECONSEC failed"
+          assert result == trendln.calc_support_resistance(data), \
+              "METHOD_NUMDIFF (default) failed"
+          assert result == trendln.calc_support_resistance(np.array(data)), \
+              "numpy array input failed"
+          assert result == trendln.calc_support_resistance(pd.Series(data)), \
+              "pandas Series input failed"
+          assert result == trendln.calc_support_resistance(data, method=trendln.METHOD_NCUBED), \
+              "METHOD_NCUBED failed"
+          assert result == trendln.calc_support_resistance(data, method=trendln.METHOD_HOUGHPOINTS), \
+              "METHOD_HOUGHPOINTS failed"
+          assert result == trendln.calc_support_resistance(data, method=trendln.METHOD_HOUGHLINES), \
+              "METHOD_HOUGHLINES failed"
+          assert result == trendln.calc_support_resistance(data, method=trendln.METHOD_PROBHOUGH), \
+              "METHOD_PROBHOUGH failed"
+
+          # Test tuple input (separate low/high series)
+          mins, maxs = trendln.calc_support_resistance((data, data))
+          minimaIdxs = trendln.get_extrema((None, data))  # maxima only
+          minimaIdxs, maximaIdxs = trendln.get_extrema(data)
+
+          print("All tests passed!")
+          EOF
