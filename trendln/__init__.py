@@ -584,8 +584,8 @@ def calc_support_resistance(h, extmethod = METHOD_NUMDIFF, method=METHOD_NSQURED
         return pts, res
     def hough_points(pts, width, height, thetas):
         diag_len = int(np.ceil(np.sqrt(width * width + height * height)))
-        rhos = np.linspace(-diag_len, diag_len, diag_len * 2.0)
-        # Cache some resuable values
+        rhos = np.linspace(-diag_len, diag_len, diag_len * 2)
+        # Cache some reusable values
         cos_t = np.cos(thetas)
         sin_t = np.sin(thetas)
         num_thetas = len(thetas)
