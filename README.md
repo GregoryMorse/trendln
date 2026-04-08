@@ -9,7 +9,7 @@ Support and Resistance Trend lines Calculator for Financial Analysis
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/trendln.svg?maxAge=2592000&label=installs&color=%2327B1FF)](https://pypi.python.org/pypi/trendln)
 [![PyPI - License](https://img.shields.io/pypi/l/trendln)](https://pypi.python.org/pypi/trendln)
 [![PyPI - Implementation](https://img.shields.io/pypi/implementation/trendln)](https://pypi.python.org/pypi/trendln)
-[![Latest push build on default branch](https://travis-ci.com/GregoryMorse/trendln.svg?branch=master)](https://travis-ci.com/GregoryMorse/trendln)
+[![CI](https://github.com/GregoryMorse/trendln/actions/workflows/ci.yml/badge.svg)](https://github.com/GregoryMorse/trendln/actions/workflows/ci.yml)
 [![GitHub stars](https://img.shields.io/github/stars/GregoryMorse/trendln?style=social)](https://github.com/GregoryMorse/trendln)
 
 Note
@@ -21,7 +21,7 @@ This library can calculate and plot trend lines for any time series, not only fo
 
 ---
 
-==> Check out this article on [Programmatic Identification of Support/Resistance Trend lines with Python](https://towardsdatascience.com/programmatic-identification-of-support-resistance-trend-lines-with-python-d797a4a90530) or [alternatively here](https://medium.com/@gregory.morse1/programmatic-identification-of-support-resistance-trend-lines-with-python-d797a4a90530)
+==> Check out this article on [Programmatic Identification of Support/Resistance Trend lines with Python](https://medium.com/data-science/programmatic-identification-of-support-resistance-trend-lines-with-python-d797a4a90530)
 for details on how the library and its features are implemented and work.
 
 ---
@@ -61,7 +61,7 @@ Documentation for usage:
 		# METHOD_NUMDIFF (default) - numerical differentiation determined local minima or maxima (requires findiff)
 		extmethod = METHOD_NUMDIFF,
 		
-		# METHOD_NCUBED - simple exhuastive 3 point search (slowest)
+		# METHOD_NCUBED - simple exhaustive 3 point search (slowest)
 		# METHOD_NSQUREDLOGN (default) - 2 point sorted slope search (fast)
 		# METHOD_HOUGHPOINTS - Hough line transform optimized for points
 		# METHOD_HOUGHLINES - image-based Hough line transform (requires scikit-image)
@@ -83,8 +83,8 @@ Documentation for usage:
 		# sort by area under wrong side of curve, otherwise sort by slope standard error
 		sortError=False,
 		
-		# accuracy if using METHOD_NUMDIFF for example 5-point stencil is accuracy=3
-		accuracy=1)
+		# accuracy if using METHOD_NUMDIFF for example 5-point stencil is accuracy=4
+		accuracy=2)
 	# if h is a 2-tuple with one value as None, then a 2-tuple is not returned, but the appropriate tuple instead
 	# minimaIdxs - sorted list of indexes to the local minima
 	# pmin - [slope, intercept] of average best fit line through all local minima points
@@ -118,7 +118,7 @@ Documentation for usage:
 	minimaIdxs, maximaIdxs = trendln.get_extrema(
 		h,
 		extmethod=METHOD_NUMDIFF,
-		accuracy=1)
+		accuracy=2)
 	# parameters and results are as per defined for calc_support_resistance
 
 Plotting Calculations
@@ -148,7 +148,7 @@ Documentation for usage:
 		errpct = 0.005,
 		hough_prob_iter=10,
 		sortError=False,
-		accuracy=1)
+		accuracy=2)
 	# other parameters as per calc_support_resistance
 	# fig - returns matplotlib.pyplot.gcf() or the current figure
 	
@@ -176,7 +176,7 @@ Documentation for usage:
 		hough_scale=0.01,
 		hough_prob_iter=10,
 		sortError=False,
-		accuracy=1)
+		accuracy=2)
 	# other parameters as per plot_support_resistance
 
 Finally, for the above mentioned article, some figures were generated for reference material,
@@ -190,7 +190,7 @@ Documentation for usage:
 		curdir, #base output directory for png and svg images, will be saved in 'data' subfolder
 		hist) #pandas DataFrame containing Close and date index
 	
-![Example output of plotting support resistance](https://github.com/GregoryMorse/trendln/blob/master/img/suppres.svg)
+![Example output of plotting support resistance](img/suppres.svg)
 
 Installation
 ------------
