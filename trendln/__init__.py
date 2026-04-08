@@ -266,10 +266,10 @@ def plot_sup_res_learn(curdir, hist):
         plt.subplot(111)
         plt.plot(minimaIdxs, [h.Close.iloc[x] for x in minimaIdxs], 'yo', label='Minima')
         plt.plot(maximaIdxs, [h.Close.iloc[x] for x in maximaIdxs], 'bo', label='Maxima')
-        from findiff import FinDiff
+        from findiff import Diff
         dx = 1 #grid scale could be amplified with pennies 0.01
-        d_dx = FinDiff(0, dx, 1) #acc=3 #for 5-point stencil, currenly uses +/-1 day only
-        d2_dx2 = FinDiff(0, dx, 2) #acc=3 #for 5-point stencil, currenly uses +/-1 day only
+        d_dx = Diff(0, dx)
+        d2_dx2 = Diff(0, dx) ** 2
         clarr = np.asarray(h.Close)
         mom = d_dx(clarr)
         momacc = d2_dx2(clarr)
@@ -402,7 +402,7 @@ def check_num_alike(h):
         import pandas as pd
         if type(h) is pd.Series and h.dtype.kind in 'biuf': return True
         else: return False
-def get_extrema(h, extmethod=METHOD_NUMDIFF, accuracy=1):
+def get_extrema(h, extmethod=METHOD_NUMDIFF, accuracy=2):
     #h must be single dimensional array-like object e.g. List, np.ndarray, pd.Series
     if type(h) is tuple and len(h) == 2 and (h[0] is None or check_num_alike(h[0])) and (h[1] is None or check_num_alike(h[1])) and (not h[0] is None or not h[1] is None):
         hmin, hmax = h[0], h[1]
@@ -433,10 +433,10 @@ def get_extrema(h, extmethod=METHOD_NUMDIFF, accuracy=1):
             return minFunc, maxFunc, numdiff_extrema
     elif extmethod == METHOD_NUMDIFF:
         #pip install findiff
-        from findiff import FinDiff
+        from findiff import Diff
         dx = 1 #1 day interval
-        d_dx = FinDiff(0, dx, 1, acc=accuracy) #acc=3 #for 5-point stencil, currenly uses +/-1 day only
-        d2_dx2 = FinDiff(0, dx, 2, acc=accuracy) #acc=3 #for 5-point stencil, currenly uses +/-1 day only
+        d_dx = Diff(0, dx, acc=accuracy)
+        d2_dx2 = Diff(0, dx, acc=accuracy) ** 2
         def get_minmax(h):
             clarr = np.asarray(h, dtype=np.float64)
             mom, momacc = d_dx(clarr), d2_dx2(clarr)
@@ -466,7 +466,7 @@ def get_extrema(h, extmethod=METHOD_NUMDIFF, accuracy=1):
 #returns (list of minima indexes, list of maxima indexes, [support slope coefficient, intersect], [resistance slope coefficient, intersect], [[support point indexes], (slope, intercept, residual, slope error, intercept error, area on wrong side of trend line per time unit)]
 def calc_support_resistance(h, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN,
                             window=125, errpct=0.005, hough_scale=0.01, hough_prob_iter=10,
-                            sortError=False, accuracy=1):
+                            sortError=False, accuracy=2):
     if not type(window) is int:
         raise ValueError('window must be of type int')
     if not type(errpct) is float:
@@ -584,8 +584,8 @@ def calc_support_resistance(h, extmethod = METHOD_NUMDIFF, method=METHOD_NSQURED
         return pts, res
     def hough_points(pts, width, height, thetas):
         diag_len = int(np.ceil(np.sqrt(width * width + height * height)))
-        rhos = np.linspace(-diag_len, diag_len, diag_len * 2.0)
-        # Cache some resuable values
+        rhos = np.linspace(-diag_len, diag_len, diag_len * 2)
+        # Cache some reusable values
         cos_t = np.cos(thetas)
         sin_t = np.sin(thetas)
         num_thetas = len(thetas)
@@ -753,7 +753,7 @@ def calc_support_resistance(h, extmethod = METHOD_NUMDIFF, method=METHOD_NSQURED
 
 def plot_sup_res_date(hist, idx, numbest = 2, fromwindows = True, pctbound=0.1,
                       extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN, window=125,
-                      errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False, accuracy=1,
+                      errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False, accuracy=2,
                       title='Prices with Support/Resistance Trend Lines', y_axis_label='Price', y_label='Close Price'):
     import matplotlib.ticker as ticker
     return plot_support_resistance(hist, ticker.FuncFormatter(datefmt(idx)), numbest, fromwindows,
@@ -761,7 +761,7 @@ def plot_sup_res_date(hist, idx, numbest = 2, fromwindows = True, pctbound=0.1,
 
 def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = True,
                             pctbound=0.1, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN,
-                            window=125, errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False, accuracy=1,
+                            window=125, errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False, accuracy=2,
                             title='Prices with Support/Resistance Trend Lines', y_axis_label='Price', y_label='Close Price'):
     import matplotlib.pyplot as plt
     import matplotlib.ticker as ticker
