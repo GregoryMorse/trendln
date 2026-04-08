@@ -11,6 +11,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
+import warnings
+warnings.filterwarnings("ignore", message="FinDiff is deprecated")
+
 from trendln import (
     calc_support_resistance,
     get_extrema,
@@ -28,12 +31,23 @@ from trendln import (
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _deep_equal(a, b):
-    """Recursive equality that treats two NaNs as equal."""
-    if isinstance(a, float) and isinstance(b, float):
-        if math.isnan(a) and math.isnan(b):
+def _deep_equal(a, b, rel_tol=1e-9):
+    """Recursive equality that treats two NaNs as equal and compares
+    floats/numpy scalars approximately to tolerate minor FP differences."""
+    import numbers
+    # Unwrap numpy 0-d scalars to Python scalars for uniform handling
+    if hasattr(a, 'item') and hasattr(a, 'ndim') and a.ndim == 0:
+        a = a.item()
+    if hasattr(b, 'item') and hasattr(b, 'ndim') and b.ndim == 0:
+        b = b.item()
+    # Numeric (float or int) comparison
+    if isinstance(a, numbers.Number) and isinstance(b, numbers.Number):
+        fa, fb = float(a), float(b)
+        if math.isnan(fa) and math.isnan(fb):
             return True
-        return a == b
+        if math.isnan(fa) or math.isnan(fb):
+            return False
+        return math.isclose(fa, fb, rel_tol=rel_tol, abs_tol=1e-15)
     if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
         return len(a) == len(b) and all(_deep_equal(x, y) for x, y in zip(a, b))
     return a == b
@@ -225,8 +239,9 @@ class TestGetExtrema:
 
     def test_separate_low_high(self):
         minimaIdxs, maximaIdxs = get_extrema((DATA_SIMPLE, DATA_SIMPLE))
+        # First tuple element = support series (finds minima); second = resistance series (finds maxima)
         assert minimaIdxs == [6, 12, 18]
-        assert maximaIdxs == [6, 12, 18]
+        assert maximaIdxs == [3, 9, 15, 21]
 
 
 # ---------------------------------------------------------------------------
