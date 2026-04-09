@@ -1,6 +1,10 @@
 Change Log
 ===========
 
+0.1.11
+-------
+- Added `title`, `y_axis_label`, and `series_label` parameters to `plot_support_resistance` and `plot_sup_res_date` for customizable plot titles, y-axis labels, and series legend labels (thanks xeonvs)
+
 0.1.8
 -------
 - Initial release
