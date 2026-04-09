@@ -516,6 +516,8 @@ def pandas_to_ohlc(df, low_col=None, high_col=None, close_col=None):
 
 def get_extrema(h, extmethod=METHOD_NUMDIFF, accuracy=2):
     extmethod = _resolve_name(extmethod, _EXTMETHOD_NAMES, 'extmethod')
+    if not type(accuracy) is int or accuracy <= 0 or accuracy % 2 != 0:
+        raise ValueError('accuracy must be a positive even integer (e.g. 2, 4, 6, 8)')
     #h must be single dimensional array-like object e.g. List, np.ndarray, pd.Series
     if type(h) is tuple and len(h) == 2 and (h[0] is None or check_num_alike(h[0])) and (h[1] is None or check_num_alike(h[1])) and (not h[0] is None or not h[1] is None):
         hmin, hmax = h[0], h[1]
@@ -591,6 +593,8 @@ def calc_support_resistance(h, extmethod = METHOD_NUMDIFF, method=METHOD_NSQURED
         raise ValueError('house_prob_iter must be of type int')
     if not type(sortError) is bool:
         raise ValueError('sortError must be True of False')
+    if not type(accuracy) is int or accuracy <= 0 or accuracy % 2 != 0:
+        raise ValueError('accuracy must be a positive even integer (e.g. 2, 4, 6, 8)')
     #h = hist.Close.tolist()
     if type(h) is tuple and len(h) == 2 and (h[0] is None or check_num_alike(h[0])) and (h[1] is None or check_num_alike(h[1])) and (not h[0] is None or not h[1] is None):
         if not h[0] is None and not h[1] is None and len(h[0]) != len(h[1]): #not strict requirement, but contextually ideal
