@@ -1,5 +1,15 @@
 Change Log
 ===========
+
+0.1.18
+-------
+- Added ``ohlc`` parameter (default ``None``) to ``plot_support_resistance`` and
+  ``plot_sup_res_date``; accepts a ``(opens, highs, lows, closes)`` 4-tuple of
+  numeric sequences and renders the price series as OHLC candlestick bars using
+  matplotlib Rectangle patches (green = bullish, red = bearish) while all
+  trendline overlays continue to work unchanged; ``hist`` still controls extrema
+  detection so the existing API is fully preserved (closes #29)
+
 0.1.17
 -------
 - Added ``get_horizontal_levels(h, pctbound=0.05, extmethod=..., accuracy=2,

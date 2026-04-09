@@ -432,6 +432,130 @@ class TestPlotOptions:
 
 
 # ---------------------------------------------------------------------------
+# Candlestick rendering via ohlc= parameter (issue #29)
+# ---------------------------------------------------------------------------
+
+def _make_ohlc(base):
+    """Build a simple synthetic OHLC 4-tuple from *base* close prices."""
+    opens  = [base[max(0, i - 1)] for i in range(len(base))]
+    highs  = [base[i] + 0.5 for i in range(len(base))]
+    lows   = [max(0.0, base[i] - 0.5) for i in range(len(base))]
+    closes = list(base)
+    return (opens, highs, lows, closes)
+
+
+class TestCandlestick:
+    """Tests for ohlc= parameter on plot_support_resistance / plot_sup_res_date."""
+
+    def test_ohlc_returns_figure(self):
+        import matplotlib
+        import matplotlib.pyplot as plt
+        ohlc = _make_ohlc(DATA_SIMPLE)
+        fig = plot_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                      ohlc=ohlc)
+        assert isinstance(fig, matplotlib.figure.Figure)
+        plt.close('all')
+
+    def test_ohlc_draws_one_patch_per_bar(self):
+        """One Rectangle patch should be added for every bar."""
+        import matplotlib.pyplot as plt
+        ohlc = _make_ohlc(DATA_SIMPLE)
+        fig = plot_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                      ohlc=ohlc)
+        ax = fig.axes[0]
+        assert len(ax.patches) == len(DATA_SIMPLE)
+        plt.close('all')
+
+    def test_ohlc_no_price_line_plotted(self):
+        """When ohlc is supplied, the plain price line (25-point line) should
+        not be drawn — only wicks (2-point each) and other trendlines."""
+        import matplotlib.pyplot as plt
+        ohlc = _make_ohlc(DATA_SIMPLE)
+        fig = plot_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                      ohlc=ohlc, show_average=False)
+        ax = fig.axes[0]
+        # No line with len(DATA_SIMPLE) x-data points should exist
+        full_series_lines = [ln for ln in ax.lines
+                             if len(ln.get_xdata()) == len(DATA_SIMPLE)]
+        assert len(full_series_lines) == 0
+        plt.close('all')
+
+    def test_no_ohlc_still_draws_price_line(self):
+        """Without ohlc the price line with len(DATA_SIMPLE) points IS drawn."""
+        import matplotlib.pyplot as plt
+        fig = plot_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                      show_average=False)
+        ax = fig.axes[0]
+        full_series_lines = [ln for ln in ax.lines
+                             if len(ln.get_xdata()) == len(DATA_SIMPLE)]
+        assert len(full_series_lines) == 1
+        plt.close('all')
+
+    def test_ohlc_patches_colors_bullish_bearish(self):
+        """Bullish bars (close >= open) should be green; bearish bars red."""
+        import matplotlib.pyplot as plt
+        # Build data where first bar is bullish (open < close)
+        # and second is bearish (open > close)
+        opens  = [1.0, 3.0] + [1.5] * (len(DATA_SIMPLE) - 2)
+        closes = [3.0, 1.0] + [1.5] * (len(DATA_SIMPLE) - 2)
+        highs  = [v + 0.5 for v in closes]
+        lows   = [v - 0.5 for v in closes]
+        ohlc = (opens, highs, lows, closes)
+        fig = plot_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                      ohlc=ohlc)
+        ax = fig.axes[0]
+        patches = ax.patches
+        assert patches[0].get_facecolor()[:3] == pytest.approx(
+            tuple(int(c, 16) / 255 for c in ['2c', 'a0', '2c']), abs=0.01)  # green
+        assert patches[1].get_facecolor()[:3] == pytest.approx(
+            tuple(int(c, 16) / 255 for c in ['d6', '27', '28']), abs=0.01)  # red
+        plt.close('all')
+
+    def test_ohlc_invalid_not_tuple_raises(self):
+        with pytest.raises(ValueError, match='ohlc'):
+            plot_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                    ohlc=[DATA_SIMPLE] * 4)
+
+    def test_ohlc_invalid_wrong_length_raises(self):
+        with pytest.raises(ValueError, match='ohlc'):
+            ohlc = _make_ohlc(DATA_SIMPLE)
+            plot_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                    ohlc=ohlc[:3])
+
+    def test_ohlc_mismatched_series_lengths_raises(self):
+        opens, highs, lows, closes = _make_ohlc(DATA_SIMPLE)
+        with pytest.raises(ValueError, match='same length'):
+            plot_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                    ohlc=(opens[:-1], highs, lows, closes))
+
+    def test_ohlc_forwarded_by_plot_sup_res_date(self):
+        """plot_sup_res_date passes ohlc through to plot_support_resistance."""
+        import matplotlib
+        import pandas as pd
+        import matplotlib.pyplot as plt
+        idx = pd.date_range('2020-01-01', periods=len(DATA_SIMPLE), freq='D')
+        ohlc = _make_ohlc(DATA_SIMPLE)
+        fig = plot_sup_res_date(DATA_SIMPLE, idx, extmethod=METHOD_NAIVE,
+                                ohlc=ohlc)
+        ax = fig.axes[0]
+        assert len(ax.patches) == len(DATA_SIMPLE)
+        assert isinstance(fig, matplotlib.figure.Figure)
+        plt.close('all')
+
+    def test_ohlc_compatible_with_ax_parameter(self):
+        """ohlc and ax can be used together (subplot embedding)."""
+        import matplotlib.pyplot as plt
+        fig, (ax1, ax2) = plt.subplots(1, 2)
+        ohlc = _make_ohlc(DATA_SIMPLE)
+        returned = plot_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                           ohlc=ohlc, ax=ax2)
+        assert returned is fig
+        assert len(ax2.patches) == len(DATA_SIMPLE)
+        assert len(ax1.patches) == 0
+        plt.close('all')
+
+
+# ---------------------------------------------------------------------------
 # Input validation
 # ---------------------------------------------------------------------------
 
