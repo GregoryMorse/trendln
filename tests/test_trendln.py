@@ -19,6 +19,7 @@ from trendln import (
     get_extrema,
     get_levels,
     pandas_to_ohlc,
+    plot_support_resistance,
     METHOD_NAIVE,
     METHOD_NAIVECONSEC,
     METHOD_NUMDIFF,
@@ -249,6 +250,42 @@ class TestGetExtrema:
 # ---------------------------------------------------------------------------
 # Input validation
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# plot_support_resistance options
+# ---------------------------------------------------------------------------
+
+import os
+os.environ.setdefault('MPLBACKEND', 'Agg')
+
+class TestPlotOptions:
+    """Tests for plot_support_resistance keyword parameters."""
+
+    def test_show_average_true_returns_figure(self):
+        import matplotlib
+        fig = plot_support_resistance(DATA_SIMPLE, show_average=True)
+        assert isinstance(fig, matplotlib.figure.Figure)
+
+    def test_show_average_false_returns_figure(self):
+        import matplotlib
+        fig = plot_support_resistance(DATA_SIMPLE, show_average=False)
+        assert isinstance(fig, matplotlib.figure.Figure)
+
+    def test_show_average_false_fewer_lines(self):
+        """With show_average=False the average lines (Avg. Support/Resistance)
+        should not appear as legend entries."""
+        import matplotlib
+        import matplotlib.pyplot as plt
+        plt.figure()
+        fig_with = plot_support_resistance(DATA_SIMPLE, show_average=True)
+        labels_with = [t.get_text() for t in fig_with.axes[0].get_legend().get_texts()]
+        plt.figure()
+        fig_without = plot_support_resistance(DATA_SIMPLE, show_average=False)
+        labels_without = [t.get_text() for t in fig_without.axes[0].get_legend().get_texts()]
+        plt.close('all')
+        assert any('Avg.' in l for l in labels_with)
+        assert not any('Avg.' in l for l in labels_without)
+
 
 class TestValidation:
     def test_invalid_h_type(self):

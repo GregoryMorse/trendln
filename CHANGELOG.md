@@ -1,6 +1,12 @@
 Change Log
 ===========
 
+0.1.13
+-------
+- Added ``show_average`` parameter (default ``True``) to
+  ``plot_support_resistance`` and ``plot_sup_res_date``; set to ``False`` to
+  hide the average support/resistance lines from the plot (closes #16)
+
 0.1.12
 -------
 - `calc_support_resistance` and `get_extrema` now accept string names for their
