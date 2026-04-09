@@ -751,6 +751,80 @@ def calc_support_resistance(h, extmethod = METHOD_NUMDIFF, method=METHOD_NSQURED
             if hmin is None: return (extremaIdxs, pmax, maxtrend, maxwindows)
     return (extremaIdxs[0], pmin, mintrend, minwindows), (extremaIdxs[1], pmax, maxtrend, maxwindows)
 
+def get_levels(calc_result, x, price, n=3):
+    """Evaluate computed trend lines at a given index to find support and
+    resistance levels, their strength, and risk-to-reward ratios.
+
+    Parameters
+    ----------
+    calc_result : tuple
+        The full 2-tuple return value of :func:`calc_support_resistance`,
+        i.e. ``((minimaIdxs, pmin, mintrend, minwindows),
+        (maximaIdxs, pmax, maxtrend, maxwindows))``.
+    x : int
+        Series index at which to evaluate trend lines.  Use
+        ``len(h) - 1`` to query the most recent bar.
+    price : float
+        Observed price at index *x*, used to classify each extrapolated
+        level as support (``level <= price``) or resistance
+        (``level > price``).
+    n : int, optional
+        Maximum number of support and resistance levels to return each
+        (default 3).
+
+    Returns
+    -------
+    support_levels : list of (float, int, float, float)
+        Up to *n* support levels at or below *price*, sorted nearest-first.
+        Each entry is ``(level, strength, slope, intercept)`` where
+        *level* is the trend line value extrapolated to index *x*,
+        *strength* is the number of pivot points the line passes through,
+        and *slope* / *intercept* are the line coefficients.
+    resistance_levels : list of (float, int, float, float)
+        Up to *n* resistance levels above *price*, same format.
+    rr_ratios : list of float or None
+        Risk-to-reward ratio for each ``resistance_levels[i]``:
+        ``(resistance_level - price) / (price - nearest_support)``.
+        Each entry is ``None`` when no support level exists, or ``inf``
+        when the nearest support equals *price* (zero risk).
+    """
+    if not (isinstance(calc_result, tuple) and len(calc_result) == 2 and
+            isinstance(calc_result[0], tuple) and len(calc_result[0]) == 4 and
+            isinstance(calc_result[1], tuple) and len(calc_result[1]) == 4):
+        raise ValueError(
+            'calc_result must be the full 2-tuple output of calc_support_resistance')
+
+    def _extract(trend):
+        levels = []
+        for points, result in trend:
+            slope, intercept = result[0], result[1]
+            levels.append((slope * x + intercept, len(points), slope, intercept))
+        return levels
+
+    _, _, mintrend, _ = calc_result[0]
+    _, _, maxtrend, _ = calc_result[1]
+
+    all_levels = _extract(mintrend) + _extract(maxtrend)
+
+    supports = sorted(
+        [t for t in all_levels if t[0] <= price],
+        key=lambda t: price - t[0])[:n]
+    resistances = sorted(
+        [t for t in all_levels if t[0] > price],
+        key=lambda t: t[0] - price)[:n]
+
+    nearest_support = supports[0][0] if supports else None
+    rr_ratios = []
+    for r_level, _, _, _ in resistances:
+        if nearest_support is None:
+            rr_ratios.append(None)
+        else:
+            risk = price - nearest_support
+            rr_ratios.append(
+                float('inf') if risk == 0 else (r_level - price) / risk)
+
+    return supports, resistances, rr_ratios
+
 def plot_sup_res_date(hist, idx, numbest = 2, fromwindows = True, pctbound=0.1,
                       extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN, window=125,
                       errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False, accuracy=2):

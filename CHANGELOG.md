@@ -1,6 +1,15 @@
 Change Log
 ===========
 
+0.1.11
+-------
+- Added `get_levels(calc_result, x, price, n=3)` function: given a pre-computed
+  `calc_support_resistance` result, evaluates all trend lines at a given series
+  index to return the nearest support levels, nearest resistance levels (each as
+  `(level, strength, slope, intercept)` sorted by proximity) and the
+  risk-to-reward ratios of each resistance level versus the nearest support
+  (closes #11)
+
 0.1.8
 -------
 - Initial release
