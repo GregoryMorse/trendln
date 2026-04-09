@@ -17,6 +17,7 @@ warnings.filterwarnings("ignore", message="FinDiff is deprecated")
 from trendln import (
     calc_support_resistance,
     get_extrema,
+    get_levels,
     METHOD_NAIVE,
     METHOD_NAIVECONSEC,
     METHOD_NUMDIFF,
@@ -276,3 +277,115 @@ class TestValidation:
     def test_tuple_both_none_raises(self):
         with pytest.raises(ValueError):
             calc_support_resistance((None, None))
+
+
+# ---------------------------------------------------------------------------
+# get_levels
+# ---------------------------------------------------------------------------
+
+# DATA_SIMPLE: flat support at 0.0 (3 pivot points), flat resistance at 3.0
+# (4 pivot points).  Trend lines are exact so evaluated level == intercept
+# regardless of x.
+
+class TestGetLevels:
+    """Tests for trendln.get_levels()."""
+
+    def _result(self, price=1.5, x=20, n=3):
+        calc = calc_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE)
+        return get_levels(calc, x, price, n)
+
+    # --- basic classification and ordering ---
+
+    def test_support_below_price(self):
+        supports, resistances, _ = self._result(price=1.5)
+        assert len(supports) == 1
+        inf_lvl, strength, slope, intercept = supports[0]
+        assert math.isclose(inf_lvl, 0.0)
+        assert strength == 3
+        assert math.isclose(slope, 0.0)
+        assert math.isclose(intercept, 0.0)
+
+    def test_resistance_above_price(self):
+        _, resistances, _ = self._result(price=1.5)
+        assert len(resistances) == 1
+        r_lvl, strength, slope, intercept = resistances[0]
+        assert math.isclose(r_lvl, 3.0)
+        assert strength == 4
+        assert math.isclose(slope, 0.0)
+        assert math.isclose(intercept, 3.0)
+
+    # --- risk-to-reward ratio ---
+
+    def test_rr_ratio_basic(self):
+        # price=1.5, support=0.0, resistance=3.0 -> RR=(3.0-1.5)/(1.5-0.0)=1.0
+        _, _, rr = self._result(price=1.5)
+        assert len(rr) == 1
+        assert math.isclose(rr[0], 1.0)
+
+    def test_rr_ratio_asymmetric(self):
+        # price=0.5, support=0.0, resistance=3.0 -> RR=2.5/0.5=5.0
+        _, _, rr = self._result(price=0.5)
+        assert len(rr) == 1
+        assert math.isclose(rr[0], 5.0)
+
+    # --- edge cases ---
+
+    def test_no_support_gives_none_rr(self):
+        # price below all trend lines -> no supports, both levels are resistance
+        supports, resistances, rr = self._result(price=-1.0)
+        assert len(supports) == 0
+        # both 0.0 and 3.0 are above -1.0 -> resistance
+        assert len(resistances) == 2
+        assert all(r is None for r in rr)
+
+    def test_price_at_support_gives_inf_rr(self):
+        # support level exactly equals price -> risk == 0 -> inf
+        _, _, rr = self._result(price=0.0)
+        assert len(rr) == 1
+        assert rr[0] == float('inf')
+
+    def test_price_at_resistance_no_resistance(self):
+        # 3.0 is not strictly > price so listed as support, nothing above
+        supports, resistances, rr = self._result(price=3.0)
+        assert len(resistances) == 0
+        assert rr == []
+        # both lines (0.0 and 3.0) are <= 3.0 -> both supports
+        assert len(supports) == 2
+
+    def test_n_limits_results(self):
+        # Only one support and one resistance exist in DATA_SIMPLE, so n doesn't clip further,
+        # but verifying the parameter is honoured when n=0.
+        supports, resistances, rr = self._result(price=1.5, n=0)
+        assert supports == []
+        assert resistances == []
+        assert rr == []
+
+    def test_supports_sorted_nearest_first(self):
+        # Create data with multiple support levels so ordering can be checked.
+        # Use a data set where both mintrend and maxtrend produce levels below price.
+        calc = calc_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE)
+        supports, _, _ = get_levels(calc, 20, 4.0)  # price above all lines (0.0 & 3.0)
+        levels = [s[0] for s in supports]
+        # Nearest to 4.0 first: 3.0 then 0.0
+        assert math.isclose(levels[0], 3.0)
+        assert math.isclose(levels[1], 0.0)
+
+    def test_resistances_sorted_nearest_first(self):
+        calc = calc_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE)
+        _, resistances, _ = get_levels(calc, 20, -1.0)  # price below all lines
+        levels = [r[0] for r in resistances]
+        # Nearest to -1.0 first: 0.0 then 3.0
+        assert math.isclose(levels[0], 0.0)
+        assert math.isclose(levels[1], 3.0)
+
+    # --- invalid input ---
+
+    def test_invalid_calc_result_raises(self):
+        with pytest.raises(ValueError):
+            get_levels(None, 10, 1.5)
+
+    def test_invalid_calc_result_single_side_raises(self):
+        # Single-side result (4-tuple) is not accepted
+        single = calc_support_resistance((DATA_SIMPLE, None))
+        with pytest.raises(ValueError):
+            get_levels(single, 10, 1.5)
