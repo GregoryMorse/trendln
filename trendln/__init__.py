@@ -1050,26 +1050,63 @@ def get_horizontal_levels(h, pctbound=0.05, extmethod=METHOD_NUMDIFF, accuracy=2
     resistance_levels = sorted(_cluster(resistance_pairs), key=lambda c: c[0])
     return support_levels, resistance_levels
 
+def _draw_candlesticks(ax, opens, highs, lows, closes, series_label):
+    """Draw OHLC candlestick bars on *ax* using matplotlib Rectangle patches.
+
+    Each bar has a thin wick spanning the full high-low range and a coloured
+    body from open to close (green = bullish, red = bearish).  The first bar
+    carries the legend label; subsequent bars are suppressed.
+    """
+    import matplotlib.patches as mpatches
+    opens  = [float(v) for v in opens]
+    highs  = [float(v) for v in highs]
+    lows   = [float(v) for v in lows]
+    closes = [float(v) for v in closes]
+    n = len(opens)
+    width = 0.6
+    bullish = '#2ca02c'
+    bearish = '#d62728'
+    lbl = series_label or 'OHLC'
+    for i in range(n):
+        color = bullish if closes[i] >= opens[i] else bearish
+        ax.plot([i, i], [lows[i], highs[i]], color='black', linewidth=0.8, zorder=2)
+        body_lo = min(opens[i], closes[i])
+        body_hi = max(opens[i], closes[i])
+        rect = mpatches.Rectangle(
+            (i - width / 2, body_lo), width, body_hi - body_lo,
+            facecolor=color, edgecolor='black', linewidth=0.5, zorder=3,
+            label=lbl)
+        ax.add_patch(rect)
+        lbl = '_nolegend_'
+
 def plot_sup_res_date(hist, idx, numbest = 2, fromwindows = True, pctbound=0.1,
                       extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN, window=125,
                       errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False, accuracy=2,
                       title='Prices with Support/Resistance Trend Lines', y_axis_label='Price', series_label=None,
-                      show_average=True, ax=None, extend_to_end=False):
+                      show_average=True, ax=None, extend_to_end=False, ohlc=None):
     import matplotlib.ticker as ticker
     return plot_support_resistance(hist, ticker.FuncFormatter(datefmt(idx)), numbest, fromwindows,
                                    pctbound, extmethod, method, window, errpct, hough_scale,
                                    hough_prob_iter, sortError, accuracy,
                                    title=title, y_axis_label=y_axis_label, series_label=series_label,
-                                   show_average=show_average, ax=ax, extend_to_end=extend_to_end)
+                                   show_average=show_average, ax=ax, extend_to_end=extend_to_end,
+                                   ohlc=ohlc)
 
 def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = True,
                             pctbound=0.1, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN,
                             window=125, errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False, accuracy=2,
                             title='Prices with Support/Resistance Trend Lines', y_axis_label='Price', series_label=None,
-                            show_average=True, ax=None, extend_to_end=False):
+                            show_average=True, ax=None, extend_to_end=False, ohlc=None):
     import matplotlib.pyplot as plt
     import matplotlib.ticker as ticker
     ret = calc_support_resistance(hist, extmethod, method, window, errpct, hough_scale, hough_prob_iter, sortError, accuracy)
+    if ohlc is not None:
+        if (not isinstance(ohlc, tuple) or len(ohlc) != 4 or
+                not all(check_num_alike(s) for s in ohlc)):
+            raise ValueError(
+                'ohlc must be a 4-tuple of (opens, highs, lows, closes) numeric sequences')
+        if not (len(ohlc[0]) == len(ohlc[1]) == len(ohlc[2]) == len(ohlc[3])):
+            raise ValueError('all four ohlc sequences must have the same length')
     if ax is None:
         plt.clf()
         ax = plt.subplot(111)
@@ -1082,15 +1119,17 @@ def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = 
             disp = [(hist[0], minimaIdxs, pmin, 'yo', 'Avg. Support', 'y--'), (hist[1], maximaIdxs, pmax, 'bo', 'Avg. Resistance', 'b--')]
             dispwin = [(hist[0], minwindows, 'Support', 'g--'), (hist[1], maxwindows, 'Resistance', 'r--')]
             disptrend = [(hist[0], mintrend, 'Support', 'g--'), (hist[1], maxtrend, 'Resistance', 'r--')]
-            ax.plot(range(len_h), hist[0], 'k--', label=f'Low {series_label or "Price"}')
-            ax.plot(range(len_h), hist[1], 'm--', label=f'High {series_label or "Price"}')
+            if ohlc is None:
+                ax.plot(range(len_h), hist[0], 'k--', label=f'Low {series_label or "Price"}')
+                ax.plot(range(len_h), hist[1], 'm--', label=f'High {series_label or "Price"}')
         else:
             len_h = len(hist)
             min_h, max_h = min(hist), max(hist)
             disp = [(hist, minimaIdxs, pmin, 'yo', 'Avg. Support', 'y--'), (hist, maximaIdxs, pmax, 'bo', 'Avg. Resistance', 'b--')]
             dispwin = [(hist, minwindows, 'Support', 'g--'), (hist, maxwindows, 'Resistance', 'r--')]
             disptrend = [(hist, mintrend, 'Support', 'g--'), (hist, maxtrend, 'Resistance', 'r--')]
-            ax.plot(range(len_h), hist, 'k--', label=series_label or 'Close Price')
+            if ohlc is None:
+                ax.plot(range(len_h), hist, 'k--', label=series_label or 'Close Price')
     else:
         minimaIdxs, pmin, mintrend, minwindows = ([], [], [], []) if hist[0] is None else ret
         maximaIdxs, pmax, maxtrend, maxwindows = ([], [], [], []) if hist[1] is None else ret
@@ -1099,7 +1138,12 @@ def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = 
         disp = [(hist[1], maximaIdxs, pmax, 'bo', 'Avg. Resistance', 'b--') if hist[0] is None else (hist[0], minimaIdxs, pmin, 'yo', 'Avg. Support', 'y--')]
         dispwin = [(hist[1], maxwindows, 'Resistance', 'r--') if hist[0] is None else (hist[0], minwindows, 'Support', 'g--')]
         disptrend = [(hist[1], maxtrend, 'Resistance', 'r--') if hist[0] is None else (hist[0], mintrend, 'Support', 'g--')]
-        ax.plot(range(len_h), hist[1 if hist[0] is None else 0], 'k--', label= ('High' if hist[0] is None else 'Low') + ' Price')
+        if ohlc is None:
+            ax.plot(range(len_h), hist[1 if hist[0] is None else 0], 'k--', label= ('High' if hist[0] is None else 'Low') + ' Price')
+    if ohlc is not None:
+        min_h = min(float(v) for v in ohlc[2])  # lows
+        max_h = max(float(v) for v in ohlc[1])  # highs
+        _draw_candlesticks(ax, ohlc[0], ohlc[1], ohlc[2], ohlc[3], series_label)
     for h, idxs, pm, clrp, lbl, clrl in disp:
         ax.plot(idxs, [h[x] for x in idxs], clrp)
         if show_average:
