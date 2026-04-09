@@ -20,6 +20,7 @@ from trendln import (
     get_levels,
     pandas_to_ohlc,
     plot_support_resistance,
+    plot_sup_res_date,
     METHOD_NAIVE,
     METHOD_NAIVECONSEC,
     METHOD_NUMDIFF,
@@ -347,6 +348,43 @@ class TestPlotOptions:
         assert any('Avg.' in l for l in labels_with)
         assert not any('Avg.' in l for l in labels_without)
 
+    def test_ax_param_draws_into_provided_axes(self):
+        """When ax is supplied the plot is drawn into that axes object."""
+        import matplotlib.pyplot as plt
+        fig, (ax1, ax2) = plt.subplots(1, 2)
+        returned_fig = plot_support_resistance(DATA_SIMPLE, ax=ax2)
+        # The returned figure must be the same object that was passed
+        assert returned_fig is fig
+        # ax2 must have content (lines drawn on it)
+        assert len(ax2.lines) > 0
+        # ax1 must be empty (nothing was drawn on it)
+        assert len(ax1.lines) == 0
+        plt.close('all')
+
+    def test_ax_param_none_creates_new_figure(self):
+        """Default (ax=None) still creates and returns a new Figure."""
+        import matplotlib
+        import matplotlib.pyplot as plt
+        plt.close('all')
+        fig = plot_support_resistance(DATA_SIMPLE)
+        assert isinstance(fig, matplotlib.figure.Figure)
+        plt.close('all')
+
+    def test_ax_param_plot_sup_res_date_passthrough(self):
+        """plot_sup_res_date forwards ax to plot_support_resistance."""
+        import pandas as pd
+        import matplotlib.pyplot as plt
+        idx = pd.date_range('2020-01-01', periods=len(DATA_SIMPLE), freq='D')
+        fig, ax = plt.subplots()
+        returned_fig = plot_sup_res_date(DATA_SIMPLE, idx, ax=ax)
+        assert returned_fig is fig
+        assert len(ax.lines) > 0
+        plt.close('all')
+
+
+# ---------------------------------------------------------------------------
+# Input validation
+# ---------------------------------------------------------------------------
 
 class TestValidation:
     def test_invalid_h_type(self):

@@ -972,24 +972,25 @@ def plot_sup_res_date(hist, idx, numbest = 2, fromwindows = True, pctbound=0.1,
                       extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN, window=125,
                       errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False, accuracy=2,
                       title='Prices with Support/Resistance Trend Lines', y_axis_label='Price', series_label=None,
-                      show_average=True):
+                      show_average=True, ax=None):
     import matplotlib.ticker as ticker
     return plot_support_resistance(hist, ticker.FuncFormatter(datefmt(idx)), numbest, fromwindows,
                                    pctbound, extmethod, method, window, errpct, hough_scale,
                                    hough_prob_iter, sortError, accuracy,
                                    title=title, y_axis_label=y_axis_label, series_label=series_label,
-                                   show_average=show_average)
+                                   show_average=show_average, ax=ax)
 
 def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = True,
                             pctbound=0.1, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN,
                             window=125, errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False, accuracy=2,
                             title='Prices with Support/Resistance Trend Lines', y_axis_label='Price', series_label=None,
-                            show_average=True):
+                            show_average=True, ax=None):
     import matplotlib.pyplot as plt
     import matplotlib.ticker as ticker
     ret = calc_support_resistance(hist, extmethod, method, window, errpct, hough_scale, hough_prob_iter, sortError, accuracy)
-    plt.clf()
-    plt.subplot(111)
+    if ax is None:
+        plt.clf()
+        ax = plt.subplot(111)
     if len(ret) == 2:
         minimaIdxs, pmin, mintrend, minwindows = ret[0]
         maximaIdxs, pmax, maxtrend, maxwindows = ret[1]
@@ -999,15 +1000,15 @@ def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = 
             disp = [(hist[0], minimaIdxs, pmin, 'yo', 'Avg. Support', 'y--'), (hist[1], maximaIdxs, pmax, 'bo', 'Avg. Resistance', 'b--')]
             dispwin = [(hist[0], minwindows, 'Support', 'g--'), (hist[1], maxwindows, 'Resistance', 'r--')]
             disptrend = [(hist[0], mintrend, 'Support', 'g--'), (hist[1], maxtrend, 'Resistance', 'r--')]
-            plt.plot(range(len_h), hist[0], 'k--', label=f'Low {series_label or "Price"}')
-            plt.plot(range(len_h), hist[1], 'm--', label=f'High {series_label or "Price"}')
+            ax.plot(range(len_h), hist[0], 'k--', label=f'Low {series_label or "Price"}')
+            ax.plot(range(len_h), hist[1], 'm--', label=f'High {series_label or "Price"}')
         else:
             len_h = len(hist)
             min_h, max_h = min(hist), max(hist)
             disp = [(hist, minimaIdxs, pmin, 'yo', 'Avg. Support', 'y--'), (hist, maximaIdxs, pmax, 'bo', 'Avg. Resistance', 'b--')]
             dispwin = [(hist, minwindows, 'Support', 'g--'), (hist, maxwindows, 'Resistance', 'r--')]
             disptrend = [(hist, mintrend, 'Support', 'g--'), (hist, maxtrend, 'Resistance', 'r--')]
-            plt.plot(range(len_h), hist, 'k--', label=series_label or 'Close Price')
+            ax.plot(range(len_h), hist, 'k--', label=series_label or 'Close Price')
     else:
         minimaIdxs, pmin, mintrend, minwindows = ([], [], [], []) if hist[0] is None else ret
         maximaIdxs, pmax, maxtrend, maxwindows = ([], [], [], []) if hist[1] is None else ret
@@ -1016,11 +1017,11 @@ def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = 
         disp = [(hist[1], maximaIdxs, pmax, 'bo', 'Avg. Resistance', 'b--') if hist[0] is None else (hist[0], minimaIdxs, pmin, 'yo', 'Avg. Support', 'y--')]
         dispwin = [(hist[1], maxwindows, 'Resistance', 'r--') if hist[0] is None else (hist[0], minwindows, 'Support', 'g--')]
         disptrend = [(hist[1], maxtrend, 'Resistance', 'r--') if hist[0] is None else (hist[0], mintrend, 'Support', 'g--')]
-        plt.plot(range(len_h), hist[1 if hist[0] is None else 0], 'k--', label= ('High' if hist[0] is None else 'Low') + ' Price')
+        ax.plot(range(len_h), hist[1 if hist[0] is None else 0], 'k--', label= ('High' if hist[0] is None else 'Low') + ' Price')
     for h, idxs, pm, clrp, lbl, clrl in disp:
-        plt.plot(idxs, [h[x] for x in idxs], clrp)
+        ax.plot(idxs, [h[x] for x in idxs], clrp)
         if show_average:
-            plt.plot([0, len_h-1],[pm[1],pm[0] * (len_h-1) + pm[1]],clrl, label=lbl)
+            ax.plot([0, len_h-1],[pm[1],pm[0] * (len_h-1) + pm[1]],clrl, label=lbl)
     def add_trend(h, trend, lbl, clr, bFirst):
         for ln in trend[:numbest]:
             maxx = ln[0][-1]+1
@@ -1032,9 +1033,9 @@ def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = 
             x_vals = np.array((ln[0][0], maxx)) # plt.gca().get_xlim())
             y_vals = ln[1][0] * x_vals + ln[1][1]
             if bFirst:
-                plt.plot([ln[0][0], maxx], y_vals, clr, label=lbl)
+                ax.plot([ln[0][0], maxx], y_vals, clr, label=lbl)
                 bFirst = False
-            else: plt.plot([ln[0][0], maxx], y_vals, clr)
+            else: ax.plot([ln[0][0], maxx], y_vals, clr)
         return bFirst
     if fromwindows:
         for h, windows, lbl, clr in dispwin:
@@ -1044,15 +1045,15 @@ def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = 
     else:
         for h, trend, lbl, clr in disptrend:
             add_trend(h, trend, lbl, clr, True)
-    plt.title(title)
-    plt.xlabel('Date')
-    plt.ylabel(y_axis_label)
-    plt.legend()
-    plt.gca().xaxis.set_major_locator(ticker.MaxNLocator(6))
-    #plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
-    if not xformatter is None: plt.gca().xaxis.set_major_formatter(xformatter)
-    plt.setp(plt.gca().get_xticklabels(), rotation=30, ha='right')
-    #plt.gca().set_position([0, 0, 1, 1])
+    ax.set_title(title)
+    ax.set_xlabel('Date')
+    ax.set_ylabel(y_axis_label)
+    ax.legend()
+    ax.xaxis.set_major_locator(ticker.MaxNLocator(6))
+    #ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+    if not xformatter is None: ax.xaxis.set_major_formatter(xformatter)
+    plt.setp(ax.get_xticklabels(), rotation=30, ha='right')
+    #ax.set_position([0, 0, 1, 1])
     #plt.savefig(os.path.join(curdir, 'data', 'suppres.svg'), format='svg', bbox_inches = 'tight')
     #plt.show()
-    return plt.gcf()
+    return ax.get_figure()
