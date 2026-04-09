@@ -316,6 +316,27 @@ class TestValidation:
         with pytest.raises(ValueError):
             calc_support_resistance((None, None))
 
+    def test_accuracy_must_be_int(self):
+        with pytest.raises(ValueError, match='accuracy'):
+            calc_support_resistance(DATA_SIMPLE, accuracy=2.0)
+
+    def test_accuracy_must_be_positive(self):
+        with pytest.raises(ValueError, match='accuracy'):
+            calc_support_resistance(DATA_SIMPLE, accuracy=0)
+
+    def test_accuracy_must_be_even(self):
+        with pytest.raises(ValueError, match='accuracy'):
+            calc_support_resistance(DATA_SIMPLE, accuracy=1)
+
+    def test_accuracy_odd_raises_on_get_extrema(self):
+        with pytest.raises(ValueError, match='accuracy'):
+            get_extrema(DATA_SIMPLE, accuracy=3)
+
+    def test_accuracy_even_values_accepted(self):
+        # 2, 4, 6, 8 should all be accepted without error
+        for acc in (2, 4, 6, 8):
+            calc_support_resistance(DATA_SIMPLE, accuracy=acc)
+
 
 # ---------------------------------------------------------------------------
 # String aliases for method / extmethod constants (issue #14)
