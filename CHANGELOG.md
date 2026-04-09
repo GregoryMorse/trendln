@@ -1,6 +1,14 @@
 Change Log
 ===========
 
+0.1.13
+-------
+- Added upfront validation of the ``accuracy`` parameter in
+  ``calc_support_resistance`` and ``get_extrema``: raises a clear
+  ``ValueError('accuracy must be a positive even integer')`` instead of a
+  cryptic findiff traceback when an odd or non-integer value is supplied;
+  the default remains ``accuracy=2`` (closes #25)
+
 0.1.12
 -------
 - `calc_support_resistance` and `get_extrema` now accept string names for their
