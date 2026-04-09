@@ -3,6 +3,10 @@ Change Log
 
 0.1.12
 -------
+- `calc_support_resistance` and `get_extrema` now accept string names for their
+  integer method constants (e.g. ``method='METHOD_NCUBED'`` in addition to
+  ``method=METHOD_NCUBED``); invalid strings raise a clear ``ValueError``
+  (closes #14)
 - Added `pandas_to_ohlc(df, low_col=None, high_col=None, close_col=None)` helper
   that converts any OHLC pandas DataFrame (yfinance, ccxt, or custom) into the
   ``(low_series, high_series)`` tuple expected by trendln functions;

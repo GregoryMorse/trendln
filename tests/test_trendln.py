@@ -281,6 +281,78 @@ class TestValidation:
 
 
 # ---------------------------------------------------------------------------
+# String aliases for method / extmethod constants (issue #14)
+# ---------------------------------------------------------------------------
+
+class TestStringMethodAliases:
+    """calc_support_resistance and get_extrema accept string names for their
+    integer method constants, e.g. 'METHOD_NCUBED' as well as METHOD_NCUBED."""
+
+    # --- method parameter ---
+
+    def test_method_string_ncubed(self):
+        assert_result(
+            calc_support_resistance(DATA_SIMPLE, method='METHOD_NCUBED'),
+            calc_support_resistance(DATA_SIMPLE, method=METHOD_NCUBED),
+        )
+
+    def test_method_string_nsquredlogn(self):
+        assert_result(
+            calc_support_resistance(DATA_SIMPLE, method='METHOD_NSQUREDLOGN'),
+            calc_support_resistance(DATA_SIMPLE, method=METHOD_NSQUREDLOGN),
+        )
+
+    def test_method_string_houghpoints(self):
+        assert_result(
+            calc_support_resistance(DATA_SIMPLE, method='METHOD_HOUGHPOINTS'),
+            calc_support_resistance(DATA_SIMPLE, method=METHOD_HOUGHPOINTS),
+        )
+
+    def test_method_string_houghlines(self):
+        assert_result(
+            calc_support_resistance(DATA_SIMPLE, method='METHOD_HOUGHLINES'),
+            calc_support_resistance(DATA_SIMPLE, method=METHOD_HOUGHLINES),
+        )
+
+    def test_method_string_probhough(self):
+        assert_result(
+            calc_support_resistance(DATA_SIMPLE, method='METHOD_PROBHOUGH'),
+            calc_support_resistance(DATA_SIMPLE, method=METHOD_PROBHOUGH),
+        )
+
+    # --- extmethod parameter ---
+
+    def test_extmethod_string_naive(self):
+        assert_result(
+            calc_support_resistance(DATA_SIMPLE, extmethod='METHOD_NAIVE'),
+            calc_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE),
+        )
+
+    def test_extmethod_string_naiveconsec(self):
+        assert_result(
+            calc_support_resistance(DATA_SIMPLE, extmethod='METHOD_NAIVECONSEC'),
+            calc_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVECONSEC),
+        )
+
+    def test_extmethod_string_numdiff(self):
+        assert_result(
+            calc_support_resistance(DATA_SIMPLE, extmethod='METHOD_NUMDIFF'),
+            calc_support_resistance(DATA_SIMPLE, extmethod=METHOD_NUMDIFF),
+        )
+
+    def test_get_extrema_string_extmethod(self):
+        assert get_extrema(DATA_SIMPLE, extmethod='METHOD_NAIVE') == \
+               get_extrema(DATA_SIMPLE, extmethod=METHOD_NAIVE)
+
+    # --- invalid string raises clearly ---
+
+    def test_invalid_method_string_raises(self):
+        with pytest.raises(ValueError, match='METHOD_BOGUS'):
+            calc_support_resistance(DATA_SIMPLE, method='METHOD_BOGUS')
+
+    def test_invalid_extmethod_string_raises(self):
+        with pytest.raises(ValueError, match='METHOD_BOGUS'):
+            get_extrema(DATA_SIMPLE, extmethod='METHOD_BOGUS')
 # pandas_to_ohlc
 # ---------------------------------------------------------------------------
 
