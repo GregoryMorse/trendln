@@ -1,6 +1,13 @@
 Change Log
 ===========
 
+0.1.12
+-------
+- Added `pandas_to_ohlc(df, low_col=None, high_col=None, close_col=None)` helper
+  that converts any OHLC pandas DataFrame (yfinance, ccxt, or custom) into the
+  ``(low_series, high_series)`` tuple expected by trendln functions;
+  auto-detects standard column names case-insensitively (closes #15)
+
 0.1.11
 -------
 - Added `get_levels(calc_result, x, price, n=3)` function: given a pre-computed

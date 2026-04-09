@@ -402,6 +402,95 @@ def check_num_alike(h):
         import pandas as pd
         if type(h) is pd.Series and h.dtype.kind in 'biuf': return True
         else: return False
+def pandas_to_ohlc(df, low_col=None, high_col=None, close_col=None):
+    """Convert a pandas OHLC DataFrame to the format expected by trendln functions.
+
+    Auto-detects standard column names (case-insensitive: ``'low'``,
+    ``'high'``, ``'close'``) when not explicitly provided.  Works directly
+    with DataFrames returned by yfinance, ccxt, and any other library that
+    follows OHLC naming conventions.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame containing price data.
+    low_col : str or None
+        Column name for the low price.  Auto-detected if ``None``.
+    high_col : str or None
+        Column name for the high price.  Auto-detected if ``None``.
+    close_col : str or None
+        Column name for the close price; used as a fallback when neither
+        *low_col* nor *high_col* is available.  Auto-detected if ``None``.
+
+    Returns
+    -------
+    tuple of (pandas.Series, pandas.Series) or pandas.Series
+        ``(low_series, high_series)`` when both columns are found — pass this
+        directly as ``hist`` to :func:`calc_support_resistance`,
+        :func:`get_extrema`, or the plot functions.  Falls back to the close
+        (or sole available) Series when only one price column is found.
+        Pass ``df.index`` as the ``idx`` argument to
+        :func:`plot_sup_res_date` to get date-formatted x-axis labels.
+
+    Raises
+    ------
+    ValueError
+        If *df* is not a ``DataFrame`` or no suitable price column can be found.
+
+    Examples
+    --------
+    With **yfinance**::
+
+        import yfinance as yf
+        hist = yf.Ticker('^GSPC').history(period='1y')
+        ohlc = pandas_to_ohlc(hist)          # (Low, High) tuple
+        mins, maxs = calc_support_resistance(ohlc)
+        fig = plot_sup_res_date(ohlc, hist.index)
+
+    With a **ccxt** OHLCV DataFrame::
+
+        import pandas as pd
+        df = pd.DataFrame(candles,
+                          columns=['Date', 'Open', 'High', 'Low', 'Close', 'Volume'])
+        ohlc = pandas_to_ohlc(df)
+        mins, maxs = calc_support_resistance(ohlc)
+
+    Close-price only::
+
+        ohlc = pandas_to_ohlc(hist, close_col='Close')
+        mins, maxs = calc_support_resistance(ohlc)
+    """
+    import pandas as pd
+    if not isinstance(df, pd.DataFrame):
+        raise ValueError('df must be a pandas DataFrame')
+
+    col_map = {c.lower(): c for c in df.columns}
+
+    def _resolve(explicit, default_key):
+        if explicit is not None:
+            if explicit not in df.columns:
+                raise ValueError(f'Column {explicit!r} not found in DataFrame')
+            return df[explicit]
+        actual = col_map.get(default_key)
+        return df[actual] if actual is not None else None
+
+    low = _resolve(low_col, 'low')
+    high = _resolve(high_col, 'high')
+    close = _resolve(close_col, 'close')
+
+    if low is not None and high is not None:
+        return (low, high)
+    if low is not None:
+        return low
+    if high is not None:
+        return high
+    if close is not None:
+        return close
+    raise ValueError(
+        'No suitable price column found in DataFrame. '
+        'Specify low_col, high_col, or close_col, or ensure the DataFrame '
+        'has columns named Low, High, or Close (case-insensitive).')
+
 def get_extrema(h, extmethod=METHOD_NUMDIFF, accuracy=2):
     #h must be single dimensional array-like object e.g. List, np.ndarray, pd.Series
     if type(h) is tuple and len(h) == 2 and (h[0] is None or check_num_alike(h[0])) and (h[1] is None or check_num_alike(h[1])) and (not h[0] is None or not h[1] is None):

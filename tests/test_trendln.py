@@ -18,6 +18,7 @@ from trendln import (
     calc_support_resistance,
     get_extrema,
     get_levels,
+    pandas_to_ohlc,
     METHOD_NAIVE,
     METHOD_NAIVECONSEC,
     METHOD_NUMDIFF,
@@ -277,6 +278,101 @@ class TestValidation:
     def test_tuple_both_none_raises(self):
         with pytest.raises(ValueError):
             calc_support_resistance((None, None))
+
+
+# ---------------------------------------------------------------------------
+# pandas_to_ohlc
+# ---------------------------------------------------------------------------
+
+class TestPandasToOhlc:
+    """Tests for trendln.pandas_to_ohlc()."""
+
+    def _df(self, columns, values=None):
+        """Build a minimal DataFrame with given column names."""
+        n = 10
+        if values is None:
+            values = {c: [float(i) for i in range(n)] for c in columns}
+        return pd.DataFrame(values)
+
+    # --- auto-detection: standard casing ---
+
+    def test_standard_columns_returns_tuple(self):
+        df = self._df(['Low', 'High', 'Close'])
+        result = pandas_to_ohlc(df)
+        assert isinstance(result, tuple) and len(result) == 2
+        assert list(result[0]) == list(df['Low'])
+        assert list(result[1]) == list(df['High'])
+
+    def test_lowercase_columns_auto_detected(self):
+        df = self._df(['low', 'high', 'close'])
+        result = pandas_to_ohlc(df)
+        assert isinstance(result, tuple) and len(result) == 2
+
+    def test_mixed_case_columns_auto_detected(self):
+        df = self._df(['LOW', 'HIGH', 'CLOSE'])
+        result = pandas_to_ohlc(df)
+        assert isinstance(result, tuple) and len(result) == 2
+
+    # --- fallback to close only ---
+
+    def test_close_only_returns_series(self):
+        df = self._df(['Open', 'Close'])
+        result = pandas_to_ohlc(df)
+        assert isinstance(result, pd.Series)
+        assert list(result) == list(df['Close'])
+
+    def test_explicit_close_col(self):
+        df = self._df(['Date', 'Price'], values={'Date': list(range(10)), 'Price': [float(i) for i in range(10)]})
+        result = pandas_to_ohlc(df, close_col='Price')
+        assert isinstance(result, pd.Series)
+        assert list(result) == list(df['Price'])
+
+    # --- explicit column names ---
+
+    def test_explicit_low_high_cols(self):
+        df = self._df(['lo', 'hi', 'cl'], values={'lo': [1.0]*10, 'hi': [2.0]*10, 'cl': [1.5]*10})
+        result = pandas_to_ohlc(df, low_col='lo', high_col='hi')
+        assert isinstance(result, tuple) and len(result) == 2
+        assert list(result[0]) == [1.0] * 10
+        assert list(result[1]) == [2.0] * 10
+
+    def test_explicit_low_only_returns_series(self):
+        df = self._df(['lo', 'cl'], values={'lo': [1.0]*10, 'cl': [1.5]*10})
+        result = pandas_to_ohlc(df, low_col='lo')
+        assert isinstance(result, pd.Series)
+        assert list(result) == [1.0] * 10
+
+    def test_explicit_high_only_returns_series(self):
+        df = self._df(['hi', 'cl'], values={'hi': [2.0]*10, 'cl': [1.5]*10})
+        result = pandas_to_ohlc(df, high_col='hi')
+        assert isinstance(result, pd.Series)
+        assert list(result) == [2.0] * 10
+
+    # --- result is valid input to calc_support_resistance ---
+
+    def test_output_feeds_calc_support_resistance(self):
+        low = [float(x) for x in [0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0]]
+        high = [v + 3.0 for v in low]
+        df = pd.DataFrame({'Low': low, 'High': high, 'Close': [(l + h) / 2 for l, h in zip(low, high)]})
+        ohlc = pandas_to_ohlc(df)
+        result = calc_support_resistance(ohlc)
+        assert isinstance(result, tuple) and len(result) == 2
+
+    # --- error cases ---
+
+    def test_non_dataframe_raises(self):
+        with pytest.raises(ValueError, match='DataFrame'):
+            pandas_to_ohlc([1, 2, 3])
+
+    def test_unknown_explicit_col_raises(self):
+        df = self._df(['Low', 'High'])
+        with pytest.raises(ValueError, match="'BadCol'"):
+            pandas_to_ohlc(df, low_col='BadCol')
+
+    def test_no_price_columns_raises(self):
+        df = self._df(['Open', 'Volume'], values={'Open': [1.0]*10, 'Volume': [100]*10})
+        with pytest.raises(ValueError, match='No suitable price column'):
+            pandas_to_ohlc(df)
 
 
 # ---------------------------------------------------------------------------
