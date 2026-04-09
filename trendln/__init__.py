@@ -514,10 +514,12 @@ def pandas_to_ohlc(df, low_col=None, high_col=None, close_col=None):
         'Specify low_col, high_col, or close_col, or ensure the DataFrame '
         'has columns named Low, High, or Close (case-insensitive).')
 
-def get_extrema(h, extmethod=METHOD_NUMDIFF, accuracy=2):
+def get_extrema(h, extmethod=METHOD_NUMDIFF, accuracy=2, include_edge=False):
     extmethod = _resolve_name(extmethod, _EXTMETHOD_NAMES, 'extmethod')
     if not type(accuracy) is int or accuracy <= 0 or accuracy % 2 != 0:
         raise ValueError('accuracy must be a positive even integer (e.g. 2, 4, 6, 8)')
+    if not isinstance(include_edge, bool):
+        raise ValueError('include_edge must be True or False')
     #h must be single dimensional array-like object e.g. List, np.ndarray, pd.Series
     if type(h) is tuple and len(h) == 2 and (h[0] is None or check_num_alike(h[0])) and (h[1] is None or check_num_alike(h[1])) and (not h[0] is None or not h[1] is None):
         hmin, hmax = h[0], h[1]
@@ -567,21 +569,43 @@ def get_extrema(h, extmethod=METHOD_NUMDIFF, accuracy=2):
                                           mom[x-1] < 0 and mom[x] > 0 and h[x-1] > h[x])))] #-mom[x-1] < mom[x])))]
             return lambda x: momacc[x] > 0, lambda x: momacc[x] < 0, numdiff_extrema
     else: raise ValueError('extmethod must be METHOD_NAIVE, METHOD_NAIVECONSEC, METHOD_NUMDIFF')
+    def edge_check(idxs, h_data, is_min):
+        """When include_edge=True, promote the first and/or last index to an
+        extremum when it is strictly less/greater than its sole neighbor."""
+        if not include_edge or len(h_data) < 2:
+            return idxs
+        n = len(h_data)
+        result = list(idxs)
+        v0, v1 = float(h_data[0]), float(h_data[1])
+        vn1, vn2 = float(h_data[n - 1]), float(h_data[n - 2])
+        if is_min:
+            if 0 not in result and v0 < v1:
+                result.insert(0, 0)
+            if (n - 1) not in result and vn1 < vn2:
+                result.append(n - 1)
+        else:
+            if 0 not in result and v0 > v1:
+                result.insert(0, 0)
+            if (n - 1) not in result and vn1 > vn2:
+                result.append(n - 1)
+        return result
     if hmin is None and hmax is None:
         minFunc, maxFunc, numdiff_extrema = get_minmax(h)
-        return numdiff_extrema(minFunc), numdiff_extrema(maxFunc)
+        return edge_check(numdiff_extrema(minFunc), h, True), \
+               edge_check(numdiff_extrema(maxFunc), h, False)
     if not hmin is None:
         minf = get_minmax(hmin)
-        if hmax is None: return minf[2](minf[0])
+        if hmax is None: return edge_check(minf[2](minf[0]), hmin, True)
     if not hmax is None:
         maxf = get_minmax(hmax)
-        if hmin is None: return maxf[2](maxf[1])
-    return minf[2](minf[0]), maxf[2](maxf[1])
+        if hmin is None: return edge_check(maxf[2](maxf[1]), hmax, False)
+    return edge_check(minf[2](minf[0]), hmin, True), \
+           edge_check(maxf[2](maxf[1]), hmax, False)
     
 #returns (list of minima indexes, list of maxima indexes, [support slope coefficient, intersect], [resistance slope coefficient, intersect], [[support point indexes], (slope, intercept, residual, slope error, intercept error, area on wrong side of trend line per time unit)]
 def calc_support_resistance(h, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN,
                             window=125, errpct=0.005, hough_scale=0.01, hough_prob_iter=10,
-                            sortError=False, accuracy=2):
+                            sortError=False, accuracy=2, include_edge=False):
     method = _resolve_name(method, _METHOD_NAMES, 'method')
     if not type(window) is int:
         raise ValueError('window must be of type int')
@@ -595,7 +619,8 @@ def calc_support_resistance(h, extmethod = METHOD_NUMDIFF, method=METHOD_NSQURED
         raise ValueError('sortError must be True of False')
     if not type(accuracy) is int or accuracy <= 0 or accuracy % 2 != 0:
         raise ValueError('accuracy must be a positive even integer (e.g. 2, 4, 6, 8)')
-    #h = hist.Close.tolist()
+    if not isinstance(include_edge, bool):
+        raise ValueError('include_edge must be True or False')
     if type(h) is tuple and len(h) == 2 and (h[0] is None or check_num_alike(h[0])) and (h[1] is None or check_num_alike(h[1])) and (not h[0] is None or not h[1] is None):
         if not h[0] is None and not h[1] is None and len(h[0]) != len(h[1]): #not strict requirement, but contextually ideal
             raise ValueError('h does not have a equal length minima and maxima data')
@@ -852,7 +877,7 @@ def calc_support_resistance(h, extmethod = METHOD_NUMDIFF, method=METHOD_NSQURED
     elif method == METHOD_PROBHOUGH:
         trendmethod = prob_hough
     else: raise ValueError('method must be one of METHOD_NCUBED, METHOD_NSQUREDLOGN, METHOD_HOUGHPOINTS, METHOD_HOUGHLINES, METHOD_PROBHOUGH')
-    extremaIdxs = get_extrema(h, extmethod, accuracy)
+    extremaIdxs = get_extrema(h, extmethod, accuracy, include_edge)
     divide = list(reversed(range(len_h, -window, -window)))
     rem, divide[0] = window - len_h % window, 0
     if rem == window: rem = 0
