@@ -8,6 +8,15 @@ Change Log
   ``(support_levels, resistance_levels)`` where each entry is
   ``(mean_price, touch_count, pivot_indices)``; accepts the same
   ``h`` formats as :func:`calc_support_resistance` (closes #13)
+
+0.1.16
+-------
+- Added ``extend_to_end`` parameter (default ``False``) to
+  ``plot_support_resistance`` and ``plot_sup_res_date``; when ``True``, trend
+  lines are drawn all the way to the last bar rather than stopping at the first
+  price-crossing or out-of-range breakout, matching the community workaround
+  described in #17 (closes #17)
+
 0.1.15
 -------
 - Added ``ax`` parameter (default ``None``) to ``plot_support_resistance`` and

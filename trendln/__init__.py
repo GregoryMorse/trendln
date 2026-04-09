@@ -1054,19 +1054,19 @@ def plot_sup_res_date(hist, idx, numbest = 2, fromwindows = True, pctbound=0.1,
                       extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN, window=125,
                       errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False, accuracy=2,
                       title='Prices with Support/Resistance Trend Lines', y_axis_label='Price', series_label=None,
-                      show_average=True, ax=None):
+                      show_average=True, ax=None, extend_to_end=False):
     import matplotlib.ticker as ticker
     return plot_support_resistance(hist, ticker.FuncFormatter(datefmt(idx)), numbest, fromwindows,
                                    pctbound, extmethod, method, window, errpct, hough_scale,
                                    hough_prob_iter, sortError, accuracy,
                                    title=title, y_axis_label=y_axis_label, series_label=series_label,
-                                   show_average=show_average, ax=ax)
+                                   show_average=show_average, ax=ax, extend_to_end=extend_to_end)
 
 def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = True,
                             pctbound=0.1, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN,
                             window=125, errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False, accuracy=2,
                             title='Prices with Support/Resistance Trend Lines', y_axis_label='Price', series_label=None,
-                            show_average=True, ax=None):
+                            show_average=True, ax=None, extend_to_end=False):
     import matplotlib.pyplot as plt
     import matplotlib.ticker as ticker
     ret = calc_support_resistance(hist, extmethod, method, window, errpct, hough_scale, hough_prob_iter, sortError, accuracy)
@@ -1106,12 +1106,15 @@ def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = 
             ax.plot([0, len_h-1],[pm[1],pm[0] * (len_h-1) + pm[1]],clrl, label=lbl)
     def add_trend(h, trend, lbl, clr, bFirst):
         for ln in trend[:numbest]:
-            maxx = ln[0][-1]+1
-            while maxx < len_h:
-                ypred = ln[1][0] * maxx + ln[1][1]
-                if (h[maxx] > ypred and h[maxx-1] < ypred or h[maxx] < ypred and h[maxx-1] > ypred or
-                    ypred > max_h + (max_h-min_h)*pctbound or ypred < min_h - (max_h-min_h)*pctbound): break
-                maxx += 1
+            if extend_to_end:
+                maxx = len_h
+            else:
+                maxx = ln[0][-1]+1
+                while maxx < len_h:
+                    ypred = ln[1][0] * maxx + ln[1][1]
+                    if (h[maxx] > ypred and h[maxx-1] < ypred or h[maxx] < ypred and h[maxx-1] > ypred or
+                        ypred > max_h + (max_h-min_h)*pctbound or ypred < min_h - (max_h-min_h)*pctbound): break
+                    maxx += 1
             x_vals = np.array((ln[0][0], maxx)) # plt.gca().get_xlim())
             y_vals = ln[1][0] * x_vals + ln[1][1]
             if bFirst:
