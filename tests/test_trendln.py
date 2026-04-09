@@ -381,6 +381,54 @@ class TestPlotOptions:
         assert len(ax.lines) > 0
         plt.close('all')
 
+    def test_extend_to_end_returns_figure(self):
+        """extend_to_end=True still returns a Figure without error."""
+        import matplotlib
+        import matplotlib.pyplot as plt
+        fig = plot_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                      extend_to_end=True)
+        assert isinstance(fig, matplotlib.figure.Figure)
+        plt.close('all')
+
+    def test_extend_to_end_lines_reach_last_bar(self):
+        """With extend_to_end=True trend lines should extend to len_h (one
+        past the last data index), i.e. the chart edge."""
+        import matplotlib.pyplot as plt
+        fig = plot_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                      numbest=2, extend_to_end=True)
+        ax = fig.axes[0]
+        len_h = len(DATA_SIMPLE)
+        # Trend lines are labeled 'Support' or 'Resistance' (the first of each
+        # group); average lines are labeled 'Avg. Support' / 'Avg. Resistance'
+        trend_labels = {'Support', 'Resistance'}
+        trendlines = [ln for ln in ax.lines
+                      if ln.get_label() in trend_labels]
+        assert len(trendlines) > 0
+        for ln in trendlines:
+            assert ln.get_xdata()[-1] == len_h
+        plt.close('all')
+
+    def test_extend_to_end_false_may_stop_early(self):
+        """With extend_to_end=False (default) lines are allowed to stop before
+        the last bar. This test just confirms no error and a figure is returned."""
+        import matplotlib
+        import matplotlib.pyplot as plt
+        fig = plot_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                      extend_to_end=False)
+        assert isinstance(fig, matplotlib.figure.Figure)
+        plt.close('all')
+
+    def test_extend_to_end_date_passthrough(self):
+        """plot_sup_res_date forwards extend_to_end to plot_support_resistance."""
+        import matplotlib
+        import pandas as pd
+        import matplotlib.pyplot as plt
+        idx = pd.date_range('2020-01-01', periods=len(DATA_SIMPLE), freq='D')
+        fig = plot_sup_res_date(DATA_SIMPLE, idx, extmethod=METHOD_NAIVE,
+                                extend_to_end=True)
+        assert isinstance(fig, matplotlib.figure.Figure)
+        plt.close('all')
+
 
 # ---------------------------------------------------------------------------
 # Input validation
