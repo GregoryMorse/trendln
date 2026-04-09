@@ -1,6 +1,14 @@
 Change Log
 ===========
 
+0.1.15
+-------
+- Added ``ax`` parameter (default ``None``) to ``plot_support_resistance`` and
+  ``plot_sup_res_date``; when an existing ``matplotlib.axes.Axes`` object is
+  supplied the plot is drawn into that axes, enabling embedding in subplots;
+  when ``None`` the previous behaviour (create a new figure) is preserved
+  (closes #26)
+
 0.1.14
 -------
 - Added ``include_edge`` parameter (default ``False``) to ``get_extrema`` and
