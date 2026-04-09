@@ -1,6 +1,13 @@
 Change Log
 ===========
-
+0.1.17
+-------
+- Added ``get_horizontal_levels(h, pctbound=0.05, extmethod=..., accuracy=2,
+  min_touches=2)`` function; detects flat support and resistance zones by
+  clustering pivot prices within a relative tolerance, returning
+  ``(support_levels, resistance_levels)`` where each entry is
+  ``(mean_price, touch_count, pivot_indices)``; accepts the same
+  ``h`` formats as :func:`calc_support_resistance` (closes #13)
 0.1.15
 -------
 - Added ``ax`` parameter (default ``None``) to ``plot_support_resistance`` and

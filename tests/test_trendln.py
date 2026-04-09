@@ -17,6 +17,7 @@ warnings.filterwarnings("ignore", message="FinDiff is deprecated")
 from trendln import (
     calc_support_resistance,
     get_extrema,
+    get_horizontal_levels,
     get_levels,
     pandas_to_ohlc,
     plot_support_resistance,
@@ -718,3 +719,102 @@ class TestGetLevels:
         single = calc_support_resistance((DATA_SIMPLE, None))
         with pytest.raises(ValueError):
             get_levels(single, 10, 1.5)
+
+
+# ---------------------------------------------------------------------------
+# get_horizontal_levels — horizontal clustering (issue #13)
+# ---------------------------------------------------------------------------
+
+import math as _math
+
+class TestGetHorizontalLevels:
+    """Tests for trendln.get_horizontal_levels()."""
+
+    # DATA_SIMPLE = [0,1,2,3,2,1,0,1,2,3,...,0] (25 pts)
+    # Minima are all 0.0 -> a single tight support cluster.
+    # Maxima are all 3.0 -> a single tight resistance cluster.
+
+    def test_returns_two_lists(self):
+        sup, res = get_horizontal_levels(DATA_SIMPLE, extmethod=METHOD_NAIVE)
+        assert isinstance(sup, list)
+        assert isinstance(res, list)
+
+    def test_entry_format(self):
+        sup, res = get_horizontal_levels(DATA_SIMPLE, extmethod=METHOD_NAIVE)
+        assert len(sup) > 0
+        mean_price, touch_count, pivot_idxs = sup[0]
+        assert isinstance(mean_price, float)
+        assert isinstance(touch_count, int)
+        assert isinstance(pivot_idxs, list)
+
+    def test_support_cluster_at_zero(self):
+        # All minima of DATA_SIMPLE are 0.0 -> should form one cluster
+        sup, _ = get_horizontal_levels(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                        min_touches=2)
+        assert len(sup) == 1
+        mean_price, touch_count, _ = sup[0]
+        assert _math.isclose(mean_price, 0.0, abs_tol=1e-9)
+        assert touch_count >= 2
+
+    def test_resistance_cluster_at_three(self):
+        # All maxima of DATA_SIMPLE are 3.0 -> should form one cluster
+        _, res = get_horizontal_levels(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                        min_touches=2)
+        assert len(res) == 1
+        mean_price, touch_count, _ = res[0]
+        assert _math.isclose(mean_price, 3.0, abs_tol=1e-9)
+        assert touch_count >= 2
+
+    def test_min_touches_one_returns_every_pivot(self):
+        sup, res = get_horizontal_levels(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                          min_touches=1)
+        # At min_touches=1 every single pivot is a level
+        total_pivots = sum(c[1] for c in sup) + sum(c[1] for c in res)
+        assert total_pivots > 0
+
+    def test_high_min_touches_filters_out_clusters(self):
+        # DATA_SIMPLE has exactly 3 minima (all 0.0). Require 4 -> no support levels.
+        sup, _ = get_horizontal_levels(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                        min_touches=10)
+        assert sup == []
+
+    def test_support_sorted_descending(self):
+        # With multiple clusters, support levels should be descending by price
+        data = [float(x) for x in [0,1,0,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2]]
+        sup, _ = get_horizontal_levels(data, extmethod=METHOD_NAIVE,
+                                        min_touches=1, pctbound=0.01)
+        prices = [s[0] for s in sup]
+        assert prices == sorted(prices, reverse=True)
+
+    def test_resistance_sorted_ascending(self):
+        _, res = get_horizontal_levels(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                        min_touches=1)
+        prices = [r[0] for r in res]
+        assert prices == sorted(prices)
+
+    def test_pivot_indices_in_range(self):
+        sup, res = get_horizontal_levels(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                          min_touches=1)
+        n = len(DATA_SIMPLE)
+        for _, _, idxs in sup + res:
+            for i in idxs:
+                assert 0 <= i < n
+
+    def test_tuple_input_low_high(self):
+        # (low, high) tuple: low->support, high->resistance
+        sup, res = get_horizontal_levels((DATA_SIMPLE, DATA_SIMPLE),
+                                          extmethod=METHOD_NAIVE, min_touches=1)
+        assert len(sup) > 0
+        assert len(res) > 0
+
+    def test_invalid_pctbound_raises(self):
+        with pytest.raises(ValueError, match='pctbound'):
+            get_horizontal_levels(DATA_SIMPLE, pctbound=0)
+
+    def test_invalid_pctbound_type_raises(self):
+        with pytest.raises(ValueError, match='pctbound'):
+            get_horizontal_levels(DATA_SIMPLE, pctbound=5)
+
+    def test_invalid_min_touches_raises(self):
+        with pytest.raises(ValueError, match='min_touches'):
+            get_horizontal_levels(DATA_SIMPLE, min_touches=0)

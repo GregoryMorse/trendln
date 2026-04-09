@@ -968,6 +968,88 @@ def get_levels(calc_result, x, price, n=3):
 
     return supports, resistances, rr_ratios
 
+def get_horizontal_levels(h, pctbound=0.05, extmethod=METHOD_NUMDIFF, accuracy=2, min_touches=2):
+    """Find horizontal support and resistance levels by clustering pivot prices.
+
+    Groups detected minima and maxima whose prices fall within *pctbound* of
+    each other into a single level, then filters to levels touched by at least
+    *min_touches* pivots.
+
+    Parameters
+    ----------
+    h : array-like or tuple
+        Price series or ``(low, high)`` 2-tuple, same format as
+        :func:`calc_support_resistance`.  For a single series both support and
+        resistance pivots are drawn from it; for a ``(low, high)`` tuple the
+        *low* series supplies support pivots and the *high* series supplies
+        resistance pivots — either element may be ``None`` to skip that side.
+    pctbound : float, optional
+        Maximum relative distance between a candidate price and the running
+        cluster mean for the two to be merged.  Default ``0.05`` (5 %).
+    extmethod : int or str, optional
+        Extrema detection method constant (default ``METHOD_NUMDIFF``).
+    accuracy : int, optional
+        Numerical differentiation accuracy passed to :func:`get_extrema`
+        (default 2).
+    min_touches : int, optional
+        Minimum pivot count required to keep a cluster (default 2).  Use
+        ``1`` to return every detected single-pivot level.
+
+    Returns
+    -------
+    support_levels : list of tuple
+        Horizontal support zones sorted descending by price.  Each entry is
+        ``(mean_price, touch_count, pivot_indices)`` where *mean_price* is the
+        average pivot price in the cluster, *touch_count* is the cluster size,
+        and *pivot_indices* is the sorted list of original series indices.
+    resistance_levels : list of tuple
+        Horizontal resistance zones in the same format, sorted ascending.
+    """
+    if not isinstance(pctbound, float) or pctbound <= 0.0:
+        raise ValueError('pctbound must be a positive float')
+    if not isinstance(min_touches, int) or min_touches < 1:
+        raise ValueError('min_touches must be a positive integer')
+
+    is_tuple = (isinstance(h, tuple) and len(h) == 2
+                and (h[0] is None or check_num_alike(h[0]))
+                and (h[1] is None or check_num_alike(h[1])))
+
+    if is_tuple:
+        h_low, h_high = h
+        raw_min_idxs = get_extrema((h_low, None), extmethod, accuracy) if h_low is not None else []
+        raw_max_idxs = get_extrema((None, h_high), extmethod, accuracy) if h_high is not None else []
+        support_pairs = [(float(h_low[i]), i) for i in raw_min_idxs] if h_low is not None else []
+        resistance_pairs = [(float(h_high[i]), i) for i in raw_max_idxs] if h_high is not None else []
+    else:
+        raw_min_idxs, raw_max_idxs = get_extrema(h, extmethod, accuracy)
+        support_pairs = [(float(h[i]), i) for i in raw_min_idxs]
+        resistance_pairs = [(float(h[i]), i) for i in raw_max_idxs]
+
+    def _cluster(price_idx_pairs):
+        if not price_idx_pairs:
+            return []
+        ordered = sorted(price_idx_pairs, key=lambda p: p[0])
+        clusters = []
+        grp_prices = [ordered[0][0]]
+        grp_idxs = [ordered[0][1]]
+        for price, idx in ordered[1:]:
+            mean = sum(grp_prices) / len(grp_prices)
+            if (mean == 0.0 and price == 0.0) or (mean != 0.0 and abs(price - mean) / mean <= pctbound):
+                grp_prices.append(price)
+                grp_idxs.append(idx)
+            else:
+                clusters.append((sum(grp_prices) / len(grp_prices),
+                                 len(grp_prices), sorted(grp_idxs)))
+                grp_prices = [price]
+                grp_idxs = [idx]
+        clusters.append((sum(grp_prices) / len(grp_prices),
+                         len(grp_prices), sorted(grp_idxs)))
+        return [c for c in clusters if c[1] >= min_touches]
+
+    support_levels = sorted(_cluster(support_pairs), key=lambda c: c[0], reverse=True)
+    resistance_levels = sorted(_cluster(resistance_pairs), key=lambda c: c[0])
+    return support_levels, resistance_levels
+
 def plot_sup_res_date(hist, idx, numbest = 2, fromwindows = True, pctbound=0.1,
                       extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN, window=125,
                       errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False, accuracy=2,
