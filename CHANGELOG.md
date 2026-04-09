@@ -9,6 +9,7 @@ Change Log
   `(level, strength, slope, intercept)` sorted by proximity) and the
   risk-to-reward ratios of each resistance level versus the nearest support
   (closes #11)
+- Added `title`, `y_axis_label`, and `series_label` parameters to `plot_support_resistance` and `plot_sup_res_date` for customizable plot titles, y-axis labels, and series legend labels (thanks xeonvs)
 
 0.1.8
 -------
