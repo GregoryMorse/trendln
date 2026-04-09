@@ -248,6 +248,67 @@ class TestGetExtrema:
 
 
 # ---------------------------------------------------------------------------
+# include_edge — edge pivot detection (issue #19)
+# ---------------------------------------------------------------------------
+
+class TestIncludeEdge:
+    """Tests for include_edge parameter on get_extrema and calc_support_resistance."""
+
+    # DATA_SIMPLE starts at 0 (index 0 is a minimum) and ends at 0 (index 24
+    # is a minimum).  With include_edge=False (default) neither endpoint is
+    # returned; with include_edge=True both should be detected.
+
+    def test_default_exclude_endpoints(self):
+        minimaIdxs, _ = get_extrema(DATA_SIMPLE)
+        assert 0 not in minimaIdxs
+        assert 24 not in minimaIdxs
+
+    def test_include_edge_first_minimum(self):
+        # DATA_SIMPLE[0]=0.0 < DATA_SIMPLE[1]=1.0 → qualifies as minimum
+        minimaIdxs, _ = get_extrema(DATA_SIMPLE, include_edge=True)
+        assert 0 in minimaIdxs
+
+    def test_include_edge_last_minimum(self):
+        # DATA_SIMPLE[24]=0.0 < DATA_SIMPLE[23]=1.0 → qualifies as minimum
+        minimaIdxs, _ = get_extrema(DATA_SIMPLE, include_edge=True)
+        assert 24 in minimaIdxs
+
+    def test_include_edge_no_false_positive_maximum_at_minimum_endpoint(self):
+        # index 0 is a minimum, NOT a maximum
+        _, maximaIdxs = get_extrema(DATA_SIMPLE, include_edge=True)
+        assert 0 not in maximaIdxs
+
+    def test_include_edge_maximum_endpoint(self):
+        # Build a series that ends on a high: [0,1,2,3,2,1,0,...,3] - last value is high
+        data = DATA_SIMPLE[:-1] + [3.0]   # override last value to 3.0 > 1.0 (second-to-last)
+        _, maximaIdxs = get_extrema(data, include_edge=True)
+        assert (len(data) - 1) in maximaIdxs
+
+    def test_include_edge_works_all_extmethods(self):
+        for em in (METHOD_NAIVE, METHOD_NAIVECONSEC, METHOD_NUMDIFF):
+            minimaIdxs, _ = get_extrema(DATA_SIMPLE, extmethod=em, include_edge=True)
+            assert 0 in minimaIdxs
+            assert 24 in minimaIdxs
+
+    def test_include_edge_via_calc_support_resistance(self):
+        result = calc_support_resistance(DATA_SIMPLE, extmethod=METHOD_NAIVE,
+                                         include_edge=True)
+        minimaIdxs = result[0][0]
+        assert 0 in minimaIdxs
+        assert 24 in minimaIdxs
+
+    def test_include_edge_invalid_type_raises(self):
+        with pytest.raises(ValueError, match='include_edge'):
+            get_extrema(DATA_SIMPLE, include_edge=1)
+
+    def test_include_edge_does_not_duplicate_existing_extrema(self):
+        # If a boundary point is already in the list, it should not appear twice
+        minimaIdxs, _ = get_extrema(DATA_SIMPLE, include_edge=True)
+        assert minimaIdxs.count(0) == 1
+        assert minimaIdxs.count(24) == 1
+
+
+# ---------------------------------------------------------------------------
 # Input validation
 # ---------------------------------------------------------------------------
 
@@ -336,6 +397,10 @@ class TestValidation:
         # 2, 4, 6, 8 should all be accepted without error
         for acc in (2, 4, 6, 8):
             calc_support_resistance(DATA_SIMPLE, accuracy=acc)
+
+    def test_include_edge_must_be_bool_calc(self):
+        with pytest.raises(ValueError, match='include_edge'):
+            calc_support_resistance(DATA_SIMPLE, include_edge=1)
 
 
 # ---------------------------------------------------------------------------

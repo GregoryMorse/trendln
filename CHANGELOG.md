@@ -1,6 +1,13 @@
 Change Log
 ===========
 
+0.1.14
+-------
+- Added ``include_edge`` parameter (default ``False``) to ``get_extrema`` and
+  ``calc_support_resistance``; when ``True``, the first and last data points are
+  eligible to be detected as local extrema via one-sided comparison with their
+  sole neighbour, eliminating the one-bar lag at series boundaries (closes #19)
+
 0.1.13
 -------
 - Added ``show_average`` parameter (default ``True``) to
