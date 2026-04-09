@@ -395,6 +395,29 @@ def test_sup_res(curdir):
     return None
 METHOD_NAIVE, METHOD_NAIVECONSEC, METHOD_NUMDIFF = 0, 1, 2
 METHOD_NCUBED, METHOD_NSQUREDLOGN, METHOD_HOUGHPOINTS, METHOD_HOUGHLINES, METHOD_PROBHOUGH = 0, 1, 2, 3, 4
+_EXTMETHOD_NAMES = {
+    'METHOD_NAIVE': METHOD_NAIVE,
+    'METHOD_NAIVECONSEC': METHOD_NAIVECONSEC,
+    'METHOD_NUMDIFF': METHOD_NUMDIFF,
+}
+_METHOD_NAMES = {
+    'METHOD_NCUBED': METHOD_NCUBED,
+    'METHOD_NSQUREDLOGN': METHOD_NSQUREDLOGN,
+    'METHOD_HOUGHPOINTS': METHOD_HOUGHPOINTS,
+    'METHOD_HOUGHLINES': METHOD_HOUGHLINES,
+    'METHOD_PROBHOUGH': METHOD_PROBHOUGH,
+}
+def _resolve_name(value, lookup, param):
+    """Allow string aliases for integer method constants.
+    e.g. 'METHOD_NCUBED' is accepted in addition to METHOD_NCUBED.
+    """
+    if isinstance(value, str):
+        if value not in lookup:
+            raise ValueError(
+                f'{param} string {value!r} is not a valid name; '
+                f'use one of {list(lookup)} or the corresponding integer constant')
+        return lookup[value]
+    return value
 def check_num_alike(h):
     if type(h) is list and all([isinstance(x, (bool, int, float)) for x in h]): return True
     elif type(h) is np.ndarray and h.ndim==1 and h.dtype.kind in 'biuf': return True
@@ -403,6 +426,7 @@ def check_num_alike(h):
         if type(h) is pd.Series and h.dtype.kind in 'biuf': return True
         else: return False
 def get_extrema(h, extmethod=METHOD_NUMDIFF, accuracy=2):
+    extmethod = _resolve_name(extmethod, _EXTMETHOD_NAMES, 'extmethod')
     #h must be single dimensional array-like object e.g. List, np.ndarray, pd.Series
     if type(h) is tuple and len(h) == 2 and (h[0] is None or check_num_alike(h[0])) and (h[1] is None or check_num_alike(h[1])) and (not h[0] is None or not h[1] is None):
         hmin, hmax = h[0], h[1]
@@ -467,6 +491,7 @@ def get_extrema(h, extmethod=METHOD_NUMDIFF, accuracy=2):
 def calc_support_resistance(h, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN,
                             window=125, errpct=0.005, hough_scale=0.01, hough_prob_iter=10,
                             sortError=False, accuracy=2):
+    method = _resolve_name(method, _METHOD_NAMES, 'method')
     if not type(window) is int:
         raise ValueError('window must be of type int')
     if not type(errpct) is float:
