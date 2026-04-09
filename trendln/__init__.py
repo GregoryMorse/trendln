@@ -946,17 +946,20 @@ def get_levels(calc_result, x, price, n=3):
 def plot_sup_res_date(hist, idx, numbest = 2, fromwindows = True, pctbound=0.1,
                       extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN, window=125,
                       errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False, accuracy=2,
-                      title='Prices with Support/Resistance Trend Lines', y_axis_label='Price', series_label=None):
+                      title='Prices with Support/Resistance Trend Lines', y_axis_label='Price', series_label=None,
+                      show_average=True):
     import matplotlib.ticker as ticker
     return plot_support_resistance(hist, ticker.FuncFormatter(datefmt(idx)), numbest, fromwindows,
                                    pctbound, extmethod, method, window, errpct, hough_scale,
                                    hough_prob_iter, sortError, accuracy,
-                                   title=title, y_axis_label=y_axis_label, series_label=series_label)
+                                   title=title, y_axis_label=y_axis_label, series_label=series_label,
+                                   show_average=show_average)
 
 def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = True,
                             pctbound=0.1, extmethod = METHOD_NUMDIFF, method=METHOD_NSQUREDLOGN,
                             window=125, errpct = 0.005, hough_scale=0.01, hough_prob_iter=10, sortError=False, accuracy=2,
-                            title='Prices with Support/Resistance Trend Lines', y_axis_label='Price', series_label=None):
+                            title='Prices with Support/Resistance Trend Lines', y_axis_label='Price', series_label=None,
+                            show_average=True):
     import matplotlib.pyplot as plt
     import matplotlib.ticker as ticker
     ret = calc_support_resistance(hist, extmethod, method, window, errpct, hough_scale, hough_prob_iter, sortError, accuracy)
@@ -991,7 +994,8 @@ def plot_support_resistance(hist, xformatter = None, numbest = 2, fromwindows = 
         plt.plot(range(len_h), hist[1 if hist[0] is None else 0], 'k--', label= ('High' if hist[0] is None else 'Low') + ' Price')
     for h, idxs, pm, clrp, lbl, clrl in disp:
         plt.plot(idxs, [h[x] for x in idxs], clrp)
-        plt.plot([0, len_h-1],[pm[1],pm[0] * (len_h-1) + pm[1]],clrl, label=lbl)
+        if show_average:
+            plt.plot([0, len_h-1],[pm[1],pm[0] * (len_h-1) + pm[1]],clrl, label=lbl)
     def add_trend(h, trend, lbl, clr, bFirst):
         for ln in trend[:numbest]:
             maxx = ln[0][-1]+1
